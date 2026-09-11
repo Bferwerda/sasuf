@@ -314,7 +314,7 @@
       const missing = ids.find(id => !document.getElementById(id).value);
       if (missing) return showValidation("Please answer this question before continuing. You may choose 'Prefer not to say' where offered.", missing);
       const age = getAgeValue();
-      if (!age) return showValidation("Please enter your age in whole years (18–120), or choose 'Prefer not to say'.", "age");
+      if (!age) return showValidation("Please enter your age in whole years (18–75), or choose 'Prefer not to say'.", "age");
       if (!getScaleValue("languageComfort")) return showValidation("Please answer this question before continuing.", "languageComfort");
       state.context = { ...collectValues(ids), age, languageComfort: getScaleValue("languageComfort"), studySite: STUDY_SITE };
       return true;
@@ -638,7 +638,7 @@
       <label for="age">Age (in years)</label>
       <div class="field-hint">Exact age lets us describe and compare the samples more precisely. You may choose not to provide it.</div>
       <div class="age-entry-row">
-        <input id="age" class="number-input" type="number" min="18" max="120" step="1" inputmode="numeric" autocomplete="off" placeholder="e.g., 23" value="${escapeHTML(numeric)}" ${prefer ? "disabled" : ""}>
+        <input id="age" class="number-input" type="number" min="18" max="75" step="1" inputmode="numeric" autocomplete="off" placeholder="e.g., 23" value="${escapeHTML(numeric)}" ${prefer ? "disabled" : ""}>
         <label class="checkbox-choice age-prefer"><input id="agePreferNot" type="checkbox" ${prefer ? "checked" : ""}><span>Prefer not to say</span></label>
       </div>
     </div>`;
@@ -652,7 +652,7 @@
     const raw = String(input.value || "").trim();
     if (!/^\d+$/.test(raw)) return "";
     const age = Number(raw);
-    if (!Number.isInteger(age) || age < 18 || age > 120) return "";
+    if (!Number.isInteger(age) || age < 18 || age > 75) return "";
     return String(age);
   }
 

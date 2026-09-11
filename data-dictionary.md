@@ -1,10 +1,10 @@
-# SASUF v11 data dictionary
+# SASUF v14 data dictionary
 
 ## Top-level
 
 - `study_site`: `SE` or `SA`
 - `session_id`: random UUID
-- `study_version`: `2026-09-v11`
+- `study_version`: `2026-09-v14`
 - `institution`, `study_level`, `discipline`
 
 ## `payload`
@@ -12,6 +12,7 @@
 - `study_site`
 - `started_at`
 - `submitted_at_client`
+- `timing`
 - `scenario_order`: randomized array of the ten scenario IDs shown to that participant
 
 ## `payload.context`
@@ -135,3 +136,15 @@ All four are 1–7 agreement ratings.
 - `lecturerNorm`: perceived lecturer support for responsible GenAI use.
 - `rulePreference`: preference for clear rules about when GenAI is and is not allowed.
 - `dependencyConcern`: concern that over-reliance on GenAI could reduce independent academic capability.
+
+
+## `payload.timing` (v14)
+
+- `active_seconds`: approximate active foreground survey time. Long idle periods are capped after 120 seconds without interaction.
+- `elapsed_seconds`: wall-clock seconds from first study start to final submission; this may include breaks or Save & exit periods.
+- `step_seconds`: active seconds by survey step. Scenario keys use `scenario:<scenario_id>`.
+- `median_scenario_seconds`: median active time across scenario pages.
+- `survey_sessions`: number of times the participant entered/resumed the survey from the landing page.
+- `idle_limit_seconds`: inactivity threshold used by the active-time timer (currently 120 seconds).
+
+Admin exports additionally derive `quality_flagged` and `quality_flags`. These are post-hoc review indicators and are not stored as participant responses or used to delete data automatically.

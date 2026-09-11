@@ -3,7 +3,7 @@
 
   const CONFIG = window.STUDY_CONFIG || {};
   const STUDY_SITE = String(CONFIG.studySite || "").toUpperCase();
-  const STUDY_VERSION = CONFIG.studyVersion || "2026-09-v11";
+  const STUDY_VERSION = CONFIG.studyVersion || "2026-09-v14";
   const STORAGE_KEY = `sasuf-genai-draft-${STUDY_SITE || "UNKNOWN"}-${STUDY_VERSION}`;
 
   const scenarios = [
@@ -84,13 +84,18 @@
     context: {},
     baseline: {},
     scenarios: {},
-    reflection: {}
+    reflection: {},
+    timing: { activeMs: 0, stepMs: {}, sessions: 0 }
   };
   state.consent ||= {};
   state.context ||= {};
   state.baseline ||= {};
   state.scenarios ||= {};
   state.reflection ||= {};
+  state.timing ||= { activeMs: 0, stepMs: {}, sessions: 0 };
+  state.timing.activeMs = Number(state.timing.activeMs) || 0;
+  state.timing.stepMs = (state.timing.stepMs && typeof state.timing.stepMs === "object") ? state.timing.stepMs : {};
+  state.timing.sessions = Number(state.timing.sessions) || 0;
   const scenarioIds = scenarios.map(s => s.id);
   if (!Array.isArray(state.scenarioOrder) || state.scenarioOrder.length !== scenarioIds.length || state.scenarioOrder.some(id => !scenarioIds.includes(id))) {
     state.scenarioOrder = shuffledCopy(scenarioIds);
@@ -118,6 +123,73 @@
   const progressPercent = document.getElementById("progressPercent");
   const progressBar = document.getElementById("progressBar");
 
+  // Completion-time paradata: active foreground time, with long idle periods excluded.
+  const TIMING_IDLE_LIMIT_MS = 120000;
+  let timingRunning = false;
+  let timingLastTick = Date.now();
+  let timingLastActivity = Date.now();
+  let timingLastPersist = Date.now();
+
+  function timingStepKey() {
+    const step = steps[state.currentStep];
+    if (!step) return "unknown";
+    return step.type === "scenario" && step.scenario ? `scenario:${step.scenario.id}` : step.type;
+  }
+  function tickTiming(now = Date.now(), forceVisible = false) {
+    if (!timingRunning || (document.hidden && !forceVisible)) { timingLastTick = now; return; }
+    const activeUntil = Math.min(now, timingLastActivity + TIMING_IDLE_LIMIT_MS);
+    const delta = Math.max(0, activeUntil - timingLastTick);
+    if (delta > 0) {
+      state.timing.activeMs += delta;
+      const key = timingStepKey();
+      state.timing.stepMs[key] = (Number(state.timing.stepMs[key]) || 0) + delta;
+    }
+    timingLastTick = now;
+  }
+  function noteTimingActivity() {
+    if (!timingRunning || document.hidden) return;
+    const now = Date.now();
+    tickTiming(now);
+    timingLastActivity = now;
+    timingLastTick = now;
+  }
+  function startTimingSession(countSession = true) {
+    const now = Date.now();
+    timingRunning = true; timingLastTick = now; timingLastActivity = now;
+    if (countSession) state.timing.sessions += 1;
+  }
+  function pauseTiming() {
+    if (!timingRunning) return;
+    tickTiming(Date.now(), true);
+    timingRunning = false;
+  }
+  function timingSnapshot(submittedAtClient) {
+    tickTiming();
+    const started = state.startedAt ? Date.parse(state.startedAt) : NaN;
+    const submitted = Date.parse(submittedAtClient);
+    const elapsedSeconds = Number.isFinite(started) && Number.isFinite(submitted) ? Math.max(0, Math.round((submitted - started) / 1000)) : null;
+    const stepSeconds = {};
+    Object.entries(state.timing.stepMs || {}).forEach(([key, ms]) => { stepSeconds[key] = Math.max(0, Math.round((Number(ms) || 0) / 1000)); });
+    const scenarioSeconds = Object.entries(stepSeconds).filter(([key]) => key.startsWith("scenario:")).map(([, value]) => value).sort((a,b)=>a-b);
+    const medianScenarioSeconds = scenarioSeconds.length ? (scenarioSeconds.length % 2 ? scenarioSeconds[(scenarioSeconds.length - 1) / 2] : Math.round((scenarioSeconds[scenarioSeconds.length/2 - 1] + scenarioSeconds[scenarioSeconds.length/2]) / 2)) : null;
+    return {
+      active_seconds: Math.max(0, Math.round(state.timing.activeMs / 1000)),
+      elapsed_seconds: elapsedSeconds,
+      step_seconds: stepSeconds,
+      median_scenario_seconds: medianScenarioSeconds,
+      survey_sessions: Math.max(1, Math.round(state.timing.sessions || 1)),
+      idle_limit_seconds: TIMING_IDLE_LIMIT_MS / 1000
+    };
+  }
+  ["pointerdown", "keydown", "input", "change"].forEach(type => document.addEventListener(type, noteTimingActivity));
+  window.addEventListener("scroll", noteTimingActivity, { passive: true });
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) { tickTiming(Date.now(), true); timingRunning = false; saveDraft(); }
+    else if (!panel.classList.contains("hidden")) startTimingSession(false);
+  });
+  window.addEventListener("pagehide", () => { pauseTiming(); saveCurrentForm(); saveDraft(); });
+  setInterval(() => { if (timingRunning) { tickTiming(); if (Date.now() - timingLastPersist > 30000) { saveDraft(); timingLastPersist = Date.now(); } } }, 5000);
+
   // Validation feedback follows the missing question and disappears when that question is answered.
   screen.addEventListener("input", event => maybeClearValidation(event.target));
   screen.addEventListener("change", event => maybeClearValidation(event.target));
@@ -135,6 +207,7 @@
 
   startBtn.addEventListener("click", () => {
     state.startedAt ||= new Date().toISOString();
+    startTimingSession(true);
     saveDraft();
     hero.classList.add("hidden");
     panel.classList.remove("hidden");
@@ -144,6 +217,7 @@
   });
 
   saveExitBtn.addEventListener("click", () => {
+    pauseTiming();
     saveCurrentForm();
     saveDraft();
     panel.classList.add("hidden");
@@ -155,7 +229,7 @@
 
   brandHome.addEventListener("click", (event) => {
     event.preventDefault();
-    if (!panel.classList.contains("hidden")) saveCurrentForm();
+    if (!panel.classList.contains("hidden")) { pauseTiming(); saveCurrentForm(); }
     saveDraft();
     panel.classList.add("hidden");
     saveExitBtn.classList.add("hidden");
@@ -422,10 +496,11 @@
     btn.disabled = true;
     btn.textContent = "Submitting…";
     showValidation("");
+    tickTiming();
     const payload = buildPayload();
     try {
-      if (backendConfigured()) { await submitToBackend(payload); localStorage.removeItem(STORAGE_KEY); renderCompletion(true); }
-      else { downloadJSON(payload); localStorage.removeItem(STORAGE_KEY); renderCompletion(false); }
+      if (backendConfigured()) { await submitToBackend(payload); pauseTiming(); localStorage.removeItem(STORAGE_KEY); renderCompletion(true); }
+      else { pauseTiming(); downloadJSON(payload); localStorage.removeItem(STORAGE_KEY); renderCompletion(false); }
     } catch (error) {
       console.error(error);
       btn.disabled = false;
@@ -444,6 +519,8 @@
   }
 
   function buildPayload() {
+    const submittedAtClient = new Date().toISOString();
+    const timing = timingSnapshot(submittedAtClient);
     return {
       study_site: STUDY_SITE,
       session_id: state.sessionId,
@@ -454,7 +531,8 @@
       payload: {
         study_site: STUDY_SITE,
         started_at: state.startedAt,
-        submitted_at_client: new Date().toISOString(),
+        submitted_at_client: submittedAtClient,
+        timing,
         scenario_order: state.scenarioOrder,
         consent: state.consent,
         context: { ...state.context, studySite: STUDY_SITE },
@@ -490,6 +568,7 @@
     if (next) next.addEventListener("click", () => {
       if (validateAndSave() === true) {
         clearValidation();
+        tickTiming();
         state.currentStep += 1;
         saveDraft();
         renderStep();
@@ -499,6 +578,7 @@
   }
 
   function goBack() {
+    tickTiming();
     saveCurrentForm();
     state.currentStep = Math.max(0, state.currentStep - 1);
     saveDraft();

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>SASUF survey dashboard</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <main class="shell">
+    <section id="loginView" class="login-card">
+      <div class="eyebrow">SASUF · Research dashboard</div>
+      <h1>Survey dashboard</h1>
+      <p>Sign in to view live statistics from the SE and SA survey datasets.</p>
+      <form id="loginForm">
+        <label for="password">Admin password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required autofocus>
+        <button type="submit" class="button primary">Sign in</button>
+        <p id="loginError" class="error" hidden></p>
+      </form>
+    </section>
+
+    <section id="dashboardView" hidden>
+      <header class="topbar">
+        <div>
+          <div class="eyebrow">SASUF · Research dashboard</div>
+          <h1 id="pageTitle">Survey dashboard</h1>
+          <p class="muted">Live descriptive statistics from the MySQL research database.</p>
+        </div>
+        <div class="actions">
+          <button id="refreshBtn" class="button">Refresh</button>
+          <button id="exportBtn" class="button">Download raw CSV</button>
+          <button id="logoutBtn" class="button ghost">Log out</button>
+        </div>
+      </header>
+
+      <nav class="tabs" aria-label="Dataset">
+        <button class="tab active" data-site="ALL">Combined</button>
+        <button class="tab" data-site="SE">SE</button>
+        <button class="tab" data-site="SA">SA</button>
+      </nav>
+
+      <div id="statusMessage" class="status" hidden></div>
+
+      <section class="kpi-grid">
+        <article class="card kpi"><span>Responses shown</span><strong id="kpiShown">—</strong><small id="kpiShownSub">—</small></article>
+        <article class="card kpi"><span>Sweden</span><strong id="kpiSE">—</strong><small>submitted responses</small></article>
+        <article class="card kpi"><span>South Africa</span><strong id="kpiSA">—</strong><small>submitted responses</small></article>
+        <article class="card kpi"><span>Avg. completion time</span><strong id="kpiTime">—</strong><small id="kpiLatest">latest: —</small></article>
+      </section>
+
+      <section class="section">
+        <h2>Participant profile</h2>
+        <div class="three-col">
+          <article class="card"><h3>Institution</h3><div id="institutions"></div></article>
+          <article class="card"><h3>Study level</h3><div id="studyLevels"></div></article>
+          <article class="card"><h3>Field of study</h3><div id="disciplines"></div></article>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Current GenAI practice</h2>
+        <div class="two-col">
+          <article class="card"><h3>Use frequency</h3><div id="useFrequency"></div></article>
+          <article class="card"><h3>Institutional guidance</h3><div id="guidance"></div></article>
+          <article class="card"><h3>Paid / premium access</h3><div id="paidAccess"></div></article>
+          <article class="card"><h3>Prior resource-awareness</h3><div id="resourceAwareness"></div></article>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Baseline 1–7 ratings</h2>
+        <p class="muted section-note">Higher values indicate stronger agreement.</p>
+        <article class="card" id="baselineRatings"></article>
+      </section>
+
+      <section class="section">
+        <h2>Scenario ratings</h2>
+        <p class="muted section-note">Mean scores on the 1–7 scales. Descriptive only.</p>
+        <div class="table-wrap"><table id="scenarioTable"></table></div>
+      </section>
+
+      <section class="section" id="comparisonSection">
+        <h2>SE vs SA scenario comparison</h2>
+        <p class="muted section-note">Mean likelihood and appropriateness for a quick cross-context view.</p>
+        <div class="table-wrap"><table id="comparisonTable"></table></div>
+      </section>
+
+      <section class="section">
+        <h2>What matters to students?</h2>
+        <p class="muted section-note">Number of times each consideration was selected across all scenario cards.</p>
+        <article class="card"><div id="reasons"></div></article>
+      </section>
+
+      <section class="section">
+        <h2>Recent submissions</h2>
+        <p class="muted section-note">Participant UUIDs and open-text responses are not shown on this dashboard.</p>
+        <div class="table-wrap"><table id="recentTable"></table></div>
+      </section>
+
+      <footer>Dashboard data is fetched from the protected API at wabisabitech.hk. No database credentials or admin password are stored in GitHub.</footer>
+    </section>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

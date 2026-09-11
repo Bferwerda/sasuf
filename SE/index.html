@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#153e46" />
+  <meta name="description" content="Comparative student study of Generative AI use in Sweden and South Africa." />
+  <title>When is GenAI worth using? — Student Study</title>
+  <link rel="stylesheet" href="../shared/styles.css" />
+</head>
+<body>
+  <div class="site-shell">
+    <header class="topbar">
+      <a class="brand" href="#" id="brandHome" aria-label="Study home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20"/><path d="M11 28c7 0 11-4 13-12 2 8 6 12 13 12"/><path d="M14 17c5-6 14-8 21-3"/></svg>
+        </span>
+        <span class="brand-copy"><strong>GENAI / GREEN</strong><small>Comparative student study</small></span>
+      </a>
+      <div class="topbar-actions">
+        <span class="country-pill" data-site-label>Study site</span>
+        <button class="text-button hidden" id="saveExitBtn" type="button">Save &amp; exit</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" id="hero">
+        <div class="hero-copy">
+          <span class="eyebrow">Student research study</span>
+          <h1>When is Generative AI <em>worth using?</em></h1>
+          <p class="lede">This study examines how students decide when GenAI adds meaningful value, when other options are sufficient, and how learning, access, guidance and sustainability shape those choices.</p>
+          <div class="hero-actions">
+            <button class="primary-button" id="startBtn" type="button">Start the study <span aria-hidden="true">→</span></button>
+            <span class="duration">About 12–15 minutes</span>
+          </div>
+          <div class="hero-points" aria-label="Study features">
+            <span><b>8</b> illustrated scenarios</span>
+            <span><b>Same</b> scenarios for everyone</span>
+            <span><b>2</b> national contexts</span>
+          </div>
+        </div>
+
+        <div class="hero-art" aria-hidden="true">
+          <svg viewBox="0 0 660 500">
+            <defs>
+              <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="18" stdDeviation="24" flood-opacity=".12"/></filter>
+            </defs>
+            <circle cx="540" cy="90" r="66" class="sun"/>
+            <circle cx="110" cy="390" r="95" class="mint-blob"/>
+            <rect x="90" y="68" width="470" height="340" rx="34" class="art-card" filter="url(#shadow)"/>
+            <rect x="126" y="104" width="398" height="228" rx="24" class="art-screen"/>
+            <rect x="158" y="136" width="188" height="22" rx="11" class="art-line strong"/>
+            <rect x="158" y="178" width="294" height="12" rx="6" class="art-line"/>
+            <rect x="158" y="204" width="248" height="12" rx="6" class="art-line faint"/>
+            <rect x="158" y="230" width="218" height="12" rx="6" class="art-line faintest"/>
+            <path d="M430 246c22-45 79-39 80 7 1 31-33 44-57 64-24-20-50-35-50-62 0-13 10-22 27-9Z" class="art-accent"/>
+            <path d="M451 269c12-22 33-31 49-30M443 275c-15-1-27-9-33-21" class="art-stroke"/>
+            <path d="M211 368h228" class="base-line"/>
+            <g transform="translate(195 344)">
+              <circle cx="30" cy="30" r="22" class="node"/>
+              <circle cx="132" cy="30" r="22" class="node secondary"/>
+              <circle cx="81" cy="83" r="22" class="node accent"/>
+              <path d="M48 42 67 67M114 43 95 67M52 30h58" class="node-link"/>
+            </g>
+            <g transform="translate(555 300)">
+              <path d="M0 26h60M30 0v60" class="plus"/>
+            </g>
+          </svg>
+        </div>
+      </section>
+
+      <section class="study-panel hidden" id="studyPanel" aria-live="polite">
+        <div class="progress-wrap">
+          <div class="progress-copy"><span id="progressLabel">Step 1</span><span id="progressPercent">0%</span></div>
+          <div class="progress-track" aria-hidden="true"><div class="progress-bar" id="progressBar"></div></div>
+        </div>
+        <div id="screen"></div>
+      </section>
+    </main>
+
+    <footer>
+      <div>
+        <strong>Comparative study · <span data-site-name>Study site</span></strong>
+        <p>Survey findings will inform a South African co-design workshop and a joint cross-context synthesis.</p>
+      </div>
+      <p class="footer-small">Researcher details, ethics reference and approved data-storage information must be completed before recruitment.</p>
+    </footer>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="../shared/app.js"></script>
+</body>
+</html>

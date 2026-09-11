@@ -1,10 +1,10 @@
-# SASUF v10 data dictionary
+# SASUF v11 data dictionary
 
 ## Top-level
 
 - `study_site`: `SE` or `SA`
 - `session_id`: random UUID
-- `study_version`: `2026-09-v10`
+- `study_version`: `2026-09-v11`
 - `institution`, `study_level`, `discipline`
 
 ## `payload`
@@ -20,7 +20,7 @@
 - `studyLevel`
 - `programmeYear`: `1`, `2`, `3`, `4+`, or `Not applicable`
 - `discipline`
-- `ageGroup`: `18-20`, `21-24`, `25-29`, `30-39`, `40+`, or `Prefer not to say`
+- `age`: exact age in whole years (`18`–`120`) or `Prefer not to say`
 - `gender`: `Woman`, `Man`, `Non-binary or another gender`, or `Prefer not to say`
 - `programmeLanguageFirst`: `Yes`, `No`, or `Prefer not to say`
 - `preUniversitySameCountry`: whether most pre-university education was completed in the current study country (Yes / No / Prefer not to say)
@@ -127,7 +127,7 @@ Each scenario contains:
 - `guidanceWanted`
 - `otherComments`
 
-## v10 explanatory-context measures
+## v11 explanatory-context measures
 
 All four are 1–7 agreement ratings.
 

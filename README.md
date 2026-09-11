@@ -1,4 +1,4 @@
-# SASUF comparative GenAI student survey — v10
+# SASUF comparative GenAI student survey — v11
 
 Static GitHub Pages frontend for the Sweden (SE) and South Africa (SA) versions of the same comparative survey.
 
@@ -16,7 +16,7 @@ Expected GitHub Pages URLs for `Bferwerda/sasuf`:
 
 Both country versions load the identical questionnaire from `shared/app.js`. The country/site is fixed by each folder's `config.js`.
 
-## v10 study design
+## v11 study design
 
 Ten academic scenarios are presented in randomized order for each participant:
 
@@ -67,9 +67,9 @@ The resource trade-off is shown after the task ratings so explicit sustainabilit
 
 ## Participant/context measures
 
-To support a defensible Sweden–South Africa comparison while limiting identifiability, the survey now records grouped rather than exact demographics:
+To support a defensible Sweden–South Africa comparison while limiting identifiability, the survey records a compact set of demographics and study-context variables:
 
-- age group
+- exact age in whole years (18–120), with a `Prefer not to say` option
 - gender, including `Prefer not to say`
 - study level
 - year in current programme
@@ -105,19 +105,27 @@ Both survey pages submit to:
 
 The API routes fixed `study_site` values to `responses_SE` or `responses_SA`.
 
-Existing MySQL response tables do not need questionnaire-specific schema changes because the complete submission is stored in `response_json`. Replace `submit.php`, `admin-api.php`, and the standalone `admin.php` with the v10 versions.
+Existing MySQL response tables do not need questionnaire-specific schema changes because the complete submission is stored in `response_json`. Replace `submit.php`, `admin-api.php`, and the standalone `admin.php` with the v11 versions.
 
-The v10 admin API deliberately reports and exports only `2026-09-v10` responses so previous test/pilot versions cannot contaminate the deployed dataset.
+The v11 admin API deliberately reports and exports only `2026-09-v11` responses so previous test/pilot versions cannot contaminate the deployed dataset.
 
 ## Mobile design
 
 The survey is mobile-first: large native range controls, 48px-class touch targets, one scenario per page, a one-column scenario layout on phones, stacked choices, compact task illustrations, full-width primary navigation, and responsive trade-off labels. Admin tables scroll horizontally inside their own containers rather than causing page-level overflow.
 
-## v10 explanatory-context additions
+## v11 explanatory-context additions
 
-The v10 instrument adds one non-identifying educational-background item (whether most pre-university education was completed in the current study country) and four 1–7 explanatory measures: peer GenAI-use norm, perceived lecturer support for responsible GenAI use, preference for clear GenAI rules, and concern about over-reliance / loss of independent academic capability. They are included in backend validation, dashboard summaries, and the flat analysis export.
+The v11 instrument adds one non-identifying educational-background item (whether most pre-university education was completed in the current study country) and four 1–7 explanatory measures: peer GenAI-use norm, perceived lecturer support for responsible GenAI use, preference for clear GenAI rules, and concern about over-reliance / loss of independent academic capability. They are included in backend validation, dashboard summaries, and the flat analysis export.
 
 
-## v10 participant information
+## v11 participant information
 
 The participant introduction now contains separate **Ethics and participant rights** and **Data storage and privacy** sections. It does not claim a formal ethics approval number. The storage text accurately describes HTTPS submission, the project MySQL database, the variables stored in the research dataset, temporary browser draft storage, possible routine server logs, restricted research-team access, de-identified reporting, and institution-governed retention/disposal.
+
+## v11 interface refinements
+
+- Slider tracks and numeric tick marks use explicit thumb geometry so the slider thumb centers align with the displayed scale numbers on desktop and mobile.
+- Moving a 1–7 slider now displays the verbal meaning of the selected response rather than only a numeric score.
+- The assistance slider displays the selected assistance type and description rather than repeating the numeric level.
+- Missing-answer validation scrolls directly to the first unanswered question, visually highlights it, shows the error beside that question, and clears the error as soon as the participant changes an answer.
+- The public study footer was removed from the SE and SA survey pages; research contacts remain in the participant-information section.

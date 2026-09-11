@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const cfg=window.SASUF_ADMIN_CONFIG||{}, endpoint=cfg.apiEndpoint, tokenKey='sasuf_admin_token_v11'; let currentSite='ALL', currentFreeTextKey='worthUsing', freeTextRows=[];
+  const cfg=window.SASUF_ADMIN_CONFIG||{}, endpoint=cfg.apiEndpoint, tokenKey='sasuf_admin_token_v11'; let currentSite='ALL', currentFreeTextKey='worthUsing', freeTextRows=[], freeTextPage=1; const FREE_TEXT_PAGE_SIZE=25;
   const freeTextLabels={worthUsing:'When GenAI is particularly valuable or justified',avoidUsing:'When students should avoid or reconsider GenAI',guidanceWanted:'What universities should consider in guidance',otherComments:'Other comments'};
   const $=id=>document.getElementById(id), loginView=$('loginView'), dashboardView=$('dashboardView'), loginForm=$('loginForm'), loginError=$('loginError');
   if(cfg.title)$('pageTitle').textContent=cfg.title;
@@ -8,13 +8,19 @@
   async function api(body,blob=false){const headers={'Content-Type':'application/json'};if(token())headers.Authorization='Bearer '+token();const r=await fetch(endpoint,{method:'POST',headers,body:JSON.stringify(body),cache:'no-store'});if(r.status===401){setToken('');showLogin();throw new Error('Your admin session has expired. Please sign in again.');}if(!r.ok){let m='Request failed.';try{const d=await r.json();if(d.error)m=d.error;}catch(_){}throw new Error(m);}return blob?r.blob():r.json();}
   function showLogin(){dashboardView.hidden=true;loginView.hidden=false;$('password').value='';setTimeout(()=>$('password').focus(),20)} function showDashboard(){loginView.hidden=true;dashboardView.hidden=false}
   loginForm.addEventListener('submit',async e=>{e.preventDefault();loginError.hidden=true;try{const d=await api({action:'login',password:$('password').value});setToken(d.token);showDashboard();await loadStats();}catch(err){loginError.textContent=err.message||'Could not sign in.';loginError.hidden=false;}});
-  document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',async()=>{currentSite=b.dataset.site;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));await loadStats();}));
-  document.querySelectorAll('.free-text-tab').forEach(b=>b.addEventListener('click',()=>{currentFreeTextKey=b.dataset.freeKey;document.querySelectorAll('.free-text-tab').forEach(x=>x.classList.toggle('active',x===b));renderFreeText();}));
+  document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',async()=>{currentSite=b.dataset.site;freeTextPage=1;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));await loadStats();}));
+  document.querySelectorAll('.free-text-tab').forEach(b=>b.addEventListener('click',()=>{currentFreeTextKey=b.dataset.freeKey;freeTextPage=1;document.querySelectorAll('.free-text-tab').forEach(x=>x.classList.toggle('active',x===b));renderFreeText();}));
+  const freeTextSearch=$('freeTextSearch'), freeTextSite=$('freeTextSite'), freeTextInstitution=$('freeTextInstitution'), freeTextPrev=$('freeTextPrev'), freeTextNext=$('freeTextNext');
+  if(freeTextSearch)freeTextSearch.addEventListener('input',()=>{freeTextPage=1;renderFreeText();});
+  if(freeTextSite)freeTextSite.addEventListener('change',()=>{freeTextPage=1;updateFreeTextInstitutionOptions();renderFreeText();});
+  if(freeTextInstitution)freeTextInstitution.addEventListener('change',()=>{freeTextPage=1;renderFreeText();});
+  if(freeTextPrev)freeTextPrev.addEventListener('click',()=>{if(freeTextPage>1){freeTextPage--;renderFreeText();scrollFreeTextIntoView();}});
+  if(freeTextNext)freeTextNext.addEventListener('click',()=>{freeTextPage++;renderFreeText();scrollFreeTextIntoView();});
   $('refreshBtn').addEventListener('click',loadStats); $('logoutBtn').addEventListener('click',()=>{setToken('');showLogin();});
   $('exportFlatBtn').addEventListener('click',()=>downloadExport('export_flat','sasuf_analysis')); $('exportRawBtn').addEventListener('click',()=>downloadExport('export_raw','sasuf_raw'));
   const clearDbBtn=$('clearDbBtn'); if(clearDbBtn)clearDbBtn.addEventListener('click',clearDatabase);
   async function downloadExport(action,prefix){try{showStatus('Preparing CSV…');const blob=await api({action,site:currentSite},true),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`${prefix}_${currentSite.toLowerCase()}_${new Date().toISOString().slice(0,10)}.csv`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);hideStatus();}catch(err){showStatus(err.message,true);}}
-  async function loadStats(){try{showStatus('Loading live statistics…');const results=await Promise.all([api({action:'stats',site:currentSite}),api({action:'free_text',site:currentSite})]);render(results[0]);freeTextRows=Array.isArray(results[1].rows)?results[1].rows:[];renderFreeText();hideStatus();}catch(err){showStatus(err.message,true);}}
+  async function loadStats(){try{showStatus('Loading live statistics…');const results=await Promise.all([api({action:'stats',site:currentSite}),api({action:'free_text',site:currentSite})]);render(results[0]);freeTextRows=Array.isArray(results[1].rows)?results[1].rows:[];freeTextPage=1;updateFreeTextFilterOptions();renderFreeText();hideStatus();}catch(err){showStatus(err.message,true);}}
   async function clearDatabase(){
     if(!window.confirm('This will permanently delete ALL survey responses from both the Sweden and South Africa tables, including responses from every survey version. This cannot be undone. Continue?'))return;
     const phrase=window.prompt('Type DELETE ALL RESPONSES to confirm:');
@@ -35,12 +41,46 @@
   function renderScenarioTable(means,labels,measures){const t=$('scenarioTable');let h='<thead><tr><th>Scenario</th>'+Object.values(measures||{}).map(x=>`<th>${esc(x)}</th>`).join('')+'</tr></thead><tbody>';Object.entries(labels||{}).forEach(([sid,label])=>{h+=`<tr><td><strong>${esc(label)}</strong></td>`;Object.keys(measures||{}).forEach(mid=>h+=`<td class="num">${fmt(means?.[sid]?.[mid])}</td>`);h+='</tr>';});t.innerHTML=h+'</tbody>';}
   function renderComparison(rows,labels){const t=$('comparisonTable');let h='<thead><tr><th>Scenario</th><th>SE % GenAI/advanced</th><th>SA % GenAI/advanced</th><th>Δ percentage points</th><th>SE trade-off</th><th>SA trade-off</th><th>Trade-off Δ SE−SA</th><th>SE appropriate</th><th>SA appropriate</th></tr></thead><tbody>';Object.keys(labels||{}).forEach(sid=>{const r=rows?.[sid]||{};h+=`<tr><td><strong>${esc(labels[sid])}</strong></td><td class="num">${pct(r.se_high_ai_share)}</td><td class="num">${pct(r.sa_high_ai_share)}</td><td class="num">${signedPct(r.high_ai_share_difference)}</td><td class="num">${fmt(r.se_tradeoff)}</td><td class="num">${fmt(r.sa_tradeoff)}</td><td class="num">${signed(r.tradeoff_difference)}</td><td class="num">${fmt(r.se_appropriate)}</td><td class="num">${fmt(r.sa_appropriate)}</td></tr>`;});t.innerHTML=h+'</tbody>';}
   function renderRecent(rows){const t=$('recentTable');let h='<thead><tr><th>Site</th><th>Submitted</th><th>Institution</th><th>Study level</th><th>Discipline</th><th>Survey version</th></tr></thead><tbody>';if(!rows.length)h+='<tr><td colspan="6" class="empty">No responses yet.</td></tr>';rows.forEach(r=>h+=`<tr><td><span class="site-badge site-${esc(r.site)}">${esc(r.site)}</span></td><td>${esc(r.submitted_at||'—')}</td><td>${esc(r.institution||'—')}</td><td>${esc(r.study_level||'—')}</td><td>${esc(r.discipline||'—')}</td><td>${esc(r.survey_version||'—')}</td></tr>`);t.innerHTML=h+'</tbody>';}
+  function updateFreeTextFilterOptions(){
+    if(!freeTextSite||!freeTextInstitution)return;
+    const previousSite=freeTextSite.value||'ALL';
+    const sites=[...new Set(freeTextRows.map(r=>String(r.site||'').trim()).filter(Boolean))].sort();
+    freeTextSite.innerHTML='<option value="ALL">All available sites</option>'+sites.map(site=>`<option value="${esc(site)}">${site==='SE'?'Sweden (SE)':site==='SA'?'South Africa (SA)':esc(site)}</option>`).join('');
+    freeTextSite.value=sites.includes(previousSite)?previousSite:'ALL';
+    updateFreeTextInstitutionOptions();
+  }
+  function updateFreeTextInstitutionOptions(){
+    if(!freeTextInstitution)return;
+    const previous=freeTextInstitution.value||'ALL', site=freeTextSite?freeTextSite.value:'ALL';
+    const institutions=[...new Set(freeTextRows.filter(r=>site==='ALL'||r.site===site).map(r=>String(r.institution||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+    freeTextInstitution.innerHTML='<option value="ALL">All institutions</option>'+institutions.map(name=>`<option value="${esc(name)}">${esc(name)}</option>`).join('');
+    freeTextInstitution.value=institutions.includes(previous)?previous:'ALL';
+  }
+  function freeTextFilteredRows(key){
+    const site=freeTextSite?freeTextSite.value:'ALL', institution=freeTextInstitution?freeTextInstitution.value:'ALL', query=(freeTextSearch?freeTextSearch.value:'').trim().toLowerCase();
+    return freeTextRows.filter(r=>{
+      const text=String(r?.texts?.[key]||'').trim();
+      if(!text)return false;
+      if(site!=='ALL'&&r.site!==site)return false;
+      if(institution!=='ALL'&&r.institution!==institution)return false;
+      if(query&&!text.toLowerCase().includes(query))return false;
+      return true;
+    });
+  }
+  function scrollFreeTextIntoView(){const section=$('freeTextSummary')?.closest('.section');if(section)section.scrollIntoView({behavior:'smooth',block:'start'});}
   function renderFreeText(){
     const root=$('freeTextList'); if(!root)return;
-    document.querySelectorAll('[data-free-count]').forEach(el=>{const key=el.dataset.freeCount;el.textContent=freeTextRows.filter(r=>String(r?.texts?.[key]||'').trim()!=='').length;});
-    const rows=freeTextRows.filter(r=>String(r?.texts?.[currentFreeTextKey]||'').trim()!=='');
-    if(!rows.length){root.innerHTML=`<div class="free-text-empty">No responses for “${esc(freeTextLabels[currentFreeTextKey]||'this question')}” in the selected dataset.</div>`;return;}
-    root.innerHTML=rows.map(r=>{const parts=[r.submitted_at||'',r.institution||'',r.study_level||'',r.discipline||''].filter(Boolean);return `<article class="free-text-card"><div class="free-text-meta"><span class="site-badge site-${esc(r.site)}">${esc(r.site)}</span><strong>Response #${esc(r.response_id)}</strong>${parts.map(x=>`<span class="meta-sep">·</span><span>${esc(x)}</span>`).join('')}</div><p class="free-text-body">${esc(r.texts[currentFreeTextKey])}</p></article>`;}).join('');
+    document.querySelectorAll('[data-free-count]').forEach(el=>{const key=el.dataset.freeCount;el.textContent=freeTextFilteredRows(key).length;});
+    const rows=freeTextFilteredRows(currentFreeTextKey), total=rows.length, pages=Math.max(1,Math.ceil(total/FREE_TEXT_PAGE_SIZE));
+    if(freeTextPage>pages)freeTextPage=pages;if(freeTextPage<1)freeTextPage=1;
+    const start=(freeTextPage-1)*FREE_TEXT_PAGE_SIZE, pageRows=rows.slice(start,start+FREE_TEXT_PAGE_SIZE), summary=$('freeTextSummary'), pageInfo=$('freeTextPageInfo');
+    if(summary)summary.textContent=total?`Showing ${start+1}–${Math.min(start+FREE_TEXT_PAGE_SIZE,total)} of ${total} matching response${total===1?'':'s'}.`:'No matching responses.';
+    if(pageInfo)pageInfo.textContent=`Page ${freeTextPage} of ${pages}`;
+    if(freeTextPrev)freeTextPrev.disabled=freeTextPage<=1||total===0;
+    if(freeTextNext)freeTextNext.disabled=freeTextPage>=pages||total===0;
+    const pager=freeTextPrev?.parentElement;if(pager)pager.hidden=total<=FREE_TEXT_PAGE_SIZE;
+    if(!total){root.innerHTML=`<div class="free-text-empty">No responses for “${esc(freeTextLabels[currentFreeTextKey]||'this question')}” match the current filters.</div>`;return;}
+    root.innerHTML=pageRows.map(r=>{const parts=[r.submitted_at||'',r.institution||'',r.study_level||'',r.discipline||''].filter(Boolean);return `<article class="free-text-card"><div class="free-text-meta"><span class="site-badge site-${esc(r.site)}">${esc(r.site)}</span><strong>Response #${esc(r.response_id)}</strong>${parts.map(x=>`<span class="meta-sep">·</span><span>${esc(x)}</span>`).join('')}</div><p class="free-text-body">${esc(r.texts[currentFreeTextKey])}</p></article>`;}).join('');
   }
   function translateCounts(counts,labels){const out={};Object.keys(labels||{}).forEach(k=>out[labels[k]]=counts?.[k]||0);return out;} function fmt(v){return v==null||Number.isNaN(Number(v))?'—':Number(v).toFixed(2)} function signed(v){if(v==null||Number.isNaN(Number(v)))return'—';const n=Number(v);return(n>=0?'+':'')+n.toFixed(2)} function pct(v){return v==null||Number.isNaN(Number(v))?'—':Number(v).toFixed(1)+'%'} function signedPct(v){if(v==null||Number.isNaN(Number(v)))return'—';const n=Number(v);return(n>=0?'+':'')+n.toFixed(1)+' pp'} function esc(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))} function showStatus(m,e=false){const el=$('statusMessage');el.textContent=m;el.className='status'+(e?' error':'');el.hidden=false} function hideStatus(){$('statusMessage').hidden=true}
   if(token()){showDashboard();loadStats();}else showLogin();

@@ -135,3 +135,7 @@ The participant introduction now contains separate **Ethics and participant righ
 This deployment package does **not** change the participant questionnaire or study schema. It adds an authenticated free-text browser to both admin dashboards. The four reflection questions can be browsed as tabs, with each response shown together with site, response number, submission time, institution, study level, and discipline. Participant UUIDs are not shown in this view.
 
 The standalone server-side `admin.php` additionally contains a **Database maintenance** section with an **Empty response database** button. This control is not present on the GitHub-hosted admin page. Clearing requires a warning confirmation plus typing `DELETE ALL RESPONSES`, and the backend accepts the destructive action only from the same-origin local admin page. It deletes all rows from `responses_SE` and `responses_SA` across all survey versions; it does not alter the table structures or server configuration.
+
+## Admin UI v13
+
+The admin dashboard now paginates free-text responses (25 per page) and supports answer search plus site and institution filters. The questionnaire and stored study version remain `2026-09-v11`.

@@ -1,5 +1,5 @@
 window.STUDY_CONFIG = {
-  studyVersion: "2026-09-v6",
+  studyVersion: "2026-09-v7",
   studySite: "SA",
   institutions: [
     "University of Fort Hare",

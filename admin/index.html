@@ -11,7 +11,7 @@
   </section>
 
   <section id="dashboardView" hidden>
-    <header class="topbar"><div><div class="eyebrow">SASUF · Research dashboard</div><h1 id="pageTitle">Survey dashboard</h1><p class="muted">Live descriptive statistics from the MySQL research database.</p></div><div class="actions"><button id="refreshBtn" class="button">Refresh</button><button id="logoutBtn" class="button ghost">Log out</button></div></header>
+    <header class="topbar"><div><div class="eyebrow">SASUF · Research dashboard</div><h1 id="pageTitle">Survey dashboard</h1><p class="muted">Live descriptive statistics from the current v7 MySQL research dataset.</p></div><div class="actions"><button id="refreshBtn" class="button">Refresh</button><button id="logoutBtn" class="button ghost">Log out</button></div></header>
     <nav class="tabs" aria-label="Dataset"><button class="tab active" data-site="ALL">Combined</button><button class="tab" data-site="SE">SE</button><button class="tab" data-site="SA">SA</button></nav>
     <div class="export-actions"><button id="exportFlatBtn" class="button">Download analysis CSV</button><button id="exportRawBtn" class="button">Download raw JSON CSV</button></div>
     <div id="statusMessage" class="status" hidden></div>
@@ -29,11 +29,11 @@
 
     <section class="section"><h2>Baseline 1–7 ratings</h2><p class="muted section-note">Higher values indicate stronger agreement with the statement.</p><article class="card" id="baselineRatings"></article></section>
 
-    <section class="section"><h2>Chosen level of assistance</h2><p class="muted section-note">1 = no AI assistance; 5 = advanced / reasoning GenAI. This is an assistance/capability choice, not an environmental-impact scale.</p><div class="assistance-key"><span>1 No AI</span><span>2 Conventional</span><span>3 Specialized AI</span><span>4 GenAI</span><span>5 Advanced / reasoning</span></div><div class="table-wrap"><table id="assistanceTable"></table></div></section>
+    <section class="section"><h2>Chosen level of assistance</h2><p class="muted section-note">Distribution of assistance categories. These are categorical choices; no mean assistance score is reported. The categories are not treated as an environmental-impact scale.</p><div class="assistance-key"><span>1 No AI</span><span>2 Conventional</span><span>3 Specialized AI</span><span>4 GenAI</span><span>5 Advanced / reasoning</span></div><div class="table-wrap"><table id="assistanceTable"></table></div></section>
 
-    <section class="section"><h2>Scenario ratings</h2><p class="muted section-note">Mean scores on the 1–7 scales. The resource–capability item is a hypothetical trade-off: 1 = prefer simpler/fewer resources, 7 = prefer more capable/more resources.</p><div class="table-wrap"><table id="scenarioTable"></table></div></section>
+    <section class="section"><h2>Scenario ratings</h2><p class="muted section-note">Mean scores on the 1–7 scenario scales. The resource–capability item is a hypothetical trade-off: 1 = prefer simpler/fewer resources, 7 = prefer more capable/more resources.</p><div class="table-wrap"><table id="scenarioTable"></table></div></section>
 
-    <section class="section" id="comparisonSection"><h2>SE vs SA scenario comparison</h2><p class="muted section-note">Chosen assistance, resource–capability trade-off, and appropriateness side by side.</p><div class="table-wrap"><table id="comparisonTable"></table></div></section>
+    <section class="section" id="comparisonSection"><h2>SE vs SA scenario comparison</h2><p class="muted section-note">Percentage choosing general/advanced GenAI, resource–capability trade-off, and appropriateness side by side.</p><div class="table-wrap"><table id="comparisonTable"></table></div></section>
 
     <section class="section"><h2>What matters to students?</h2><p class="muted section-note">Number of participants selecting each factor in the final decision-factors question.</p><article class="card"><div id="decisionFactors"></div></article></section>
 

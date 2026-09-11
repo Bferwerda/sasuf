@@ -3,7 +3,7 @@
 
   const CONFIG = window.STUDY_CONFIG || {};
   const STUDY_SITE = String(CONFIG.studySite || "").toUpperCase();
-  const STUDY_VERSION = CONFIG.studyVersion || "2026-09-v6";
+  const STUDY_VERSION = CONFIG.studyVersion || "2026-09-v7";
   const STORAGE_KEY = `sasuf-genai-draft-${STUDY_SITE || "UNKNOWN"}-${STUDY_VERSION}`;
 
   const scenarios = [
@@ -12,9 +12,11 @@
     { id: "reading_summary", title: "Working through an academic reading", text: "You have been assigned a long academic article and need to understand its main arguments before your next class.", art: "reading" },
     { id: "brainstorming", title: "Brainstorming ideas", text: "You are at the beginning of an assignment and need possible directions or ideas to explore before developing the work yourself.", art: "brainstorm" },
     { id: "language_support", title: "Language support", text: "You understand the topic of an academic text, but some of the language makes it difficult to follow. You want help translating or rephrasing parts of it into a language or form that is easier for you to understand.", art: "language" },
-    { id: "factual_information", title: "Finding straightforward factual information", text: "You need a straightforward factual answer for coursework, such as the meaning of a term, a date, or a basic definition.", art: "search" },
+    { id: "academic_sources", title: "Finding academic sources", text: "You are starting an assignment and need to identify relevant academic literature and evidence on your topic. You want help locating and understanding potentially relevant sources.", art: "sources" },
     { id: "organising_information", title: "Organising information", text: "You have collected notes and information for an assignment and need to organise them into themes or categories before you continue your own analysis.", art: "organise" },
-    { id: "assessed_writing", title: "Drafting assessed work", text: "You need to write part of an assessed assignment and are deciding how much digital or AI assistance, if any, you would use to help produce a first draft.", art: "assessed" }
+    { id: "feedback_work", title: "Getting feedback on your own work", text: "You have written a draft of an assignment yourself and want feedback on its clarity, argumentation and areas that could be improved before submitting it.", art: "feedback" },
+    { id: "assessed_writing", title: "Drafting assessed work", text: "You need to write part of an assessed assignment and are deciding how much digital or AI assistance, if any, you would use to help produce a first draft.", art: "assessed" },
+    { id: "data_interpretation", title: "Interpreting data or visual information", text: "You are working with a table, graph or set of results for one of your courses and need to understand the main patterns and what conclusions can reasonably be drawn from them.", art: "data" }
   ];
 
   const assistanceLevels = [
@@ -26,6 +28,9 @@
   ];
 
   const scenarioMeasures = [
+    { key: "difficulty", text: "How difficult would this task be for you to complete satisfactorily without Generative AI?", left: "Not difficult at all", right: "Extremely difficult" },
+    { key: "stakes", text: "How important is it to get a highly accurate or high-quality result for this task?", left: "Not very important", right: "Extremely important" },
+    { key: "evaluation", text: "If you used AI for this task, how confident are you that you could judge whether its output was correct and appropriate?", left: "Not at all confident", right: "Completely confident" },
     { key: "appropriate", text: "Using AI for this task would be appropriate.", left: "Strongly disagree", right: "Strongly agree" },
     { key: "value", text: "AI assistance would add meaningful value compared with a simpler option.", left: "Strongly disagree", right: "Strongly agree" },
     { key: "alternative", text: "A simpler digital or non-AI option would adequately meet my needs for this task.", left: "Strongly disagree", right: "Strongly agree" },
@@ -40,7 +45,9 @@
     ["proofread", "Proofreading or language improvement"],
     ["translate", "Translation or language support"],
     ["code_data", "Programming, data or technical work"],
-    ["search", "Finding or exploring information"],
+    ["sources", "Finding academic sources or evidence"],
+    ["search", "General information search"],
+    ["feedback", "Getting feedback on my own work"],
     ["other", "Other study-related use"],
     ["not_using", "I have not used GenAI for my studies"]
   ];
@@ -49,6 +56,8 @@
     ["time", "Time or convenience"],
     ["complexity", "Complexity of the task"],
     ["quality", "Expected quality"],
+    ["stakes", "Importance of getting the result right"],
+    ["oversight", "Confidence evaluating the AI output"],
     ["learning", "Learning or understanding"],
     ["language", "Language or accessibility support"],
     ["alternative", "Availability of simpler alternatives"],
@@ -170,7 +179,7 @@
         <p class="screen-intro">We are studying how university students in Sweden and South Africa choose between simpler digital tools and different levels of AI assistance for academic tasks. Everyone sees the same scenarios; this is a comparative survey rather than an experimental manipulation.</p>
         <ul class="consent-list">
           <li>Participation is voluntary and you may stop before submitting.</li>
-          <li>The survey takes approximately 12–15 minutes.</li>
+          <li>The survey takes approximately 18–22 minutes.</li>
           <li>We do not ask for your name or email address.</li>
           <li>Your responses may be used in research publications and to develop preliminary guidance for responsible GenAI use.</li>
           <li>Only aggregated or anonymised findings will be reported.</li>
@@ -300,8 +309,9 @@
             <p class="scenario-text">${escapeHTML(s.text)}</p>
             ${assistanceSlider(s.id, saved.assistanceLevel)}
             <details class="level-guide" ${step.scenarioNumber === 1 ? "open" : ""}><summary>What do the five assistance types mean?</summary><div class="level-guide-grid">${assistanceLevels.map(level => `<div><span class="level-number">${level.value}</span><p><strong>${escapeHTML(level.label)}</strong><br>${escapeHTML(level.description)}</p></div>`).join("")}</div><p class="scale-note">These categories describe the kind and capability of assistance you would choose. They are not treated as a fixed environmental-impact scale.</p></details>
-            ${tradeoffSlider(s.id, saved.resourceTradeoff)}
+            <div class="scenario-rating-intro"><strong>About this task</strong><span>Please rate the task and the role AI could play in it.</span></div>
             <div class="scenario-measures">${scenarioMeasures.map(m => rangeScale(`${s.id}_${m.key}`, m.text, saved[m.key], m.left, m.right)).join("")}</div>
+            ${tradeoffSlider(s.id, saved.resourceTradeoff)}
             <div id="validation" class="validation" role="alert"></div>
             ${navButtons(true, step.scenarioNumber === scenarios.length ? "Continue" : "Next scenario")}
           </div>
@@ -315,14 +325,15 @@
     bindNav(() => {
       const assistanceLevel = getScaleValue(`${s.id}_assistance`);
       if (!assistanceLevel) return showValidation("Please choose the type of assistance you would normally use.");
-      const resourceTradeoff = getScaleValue(`${s.id}_tradeoff`);
-      if (!resourceTradeoff) return showValidation("Please answer the resource–capability trade-off question.");
-      const answers = { assistanceLevel, resourceTradeoff };
+      const answers = { assistanceLevel };
       for (const m of scenarioMeasures) {
         const value = getScaleValue(`${s.id}_${m.key}`);
-        if (!value) return showValidation("Please answer all rating questions before continuing.");
+        if (!value) return showValidation("Please answer all task-rating questions before continuing.");
         answers[m.key] = value;
       }
+      const resourceTradeoff = getScaleValue(`${s.id}_tradeoff`);
+      if (!resourceTradeoff) return showValidation("Please answer the resource–capability trade-off question.");
+      answers.resourceTradeoff = resourceTradeoff;
       state.scenarios[s.id] = answers;
       return true;
     });
@@ -541,7 +552,7 @@
     const current = answered ? Number(value) : 4;
     return `<section class="tradeoff-block" aria-labelledby="${id}_label">
       <div class="tradeoff-title" id="${id}_label">Resource–capability trade-off</div>
-      <p class="tradeoff-prompt">Suppose both options were permitted and a simpler digital option could complete this task adequately. A more capable AI system might provide a better or more tailored result, but would require more computing resources. Which would you prefer?</p>
+      <p class="tradeoff-prompt">For this question, imagine that both options are permitted and you can choose between a simpler digital option requiring fewer computing resources and a more capable AI option requiring more computing resources. The more capable option may provide a better or more tailored result. Which would you prefer for this task?</p>
       <div class="tradeoff-head"><span>Simpler option<br><small>fewer computing resources</small></span><output id="${id}_output" class="range-output ${answered ? "answered" : ""}">${answered ? `${current} / 7` : "Not answered"}</output><span>More capable AI<br><small>more computing resources</small></span></div>
       <input class="survey-range tradeoff-range" id="${id}" data-scale="7" data-answered="${answered ? "true" : "false"}" type="range" min="1" max="7" step="1" value="${current}" aria-label="Preference between a simpler lower-resource option and a more capable higher-resource AI option">
       <div class="range-ticks" aria-hidden="true">${[1,2,3,4,5,6,7].map(n => `<span>${n}</span>`).join("")}</div>
@@ -636,9 +647,11 @@
       reading: `<rect x="56" y="60" width="96" height="116" rx="8" fill="#eaf6f2" transform="rotate(-8 56 60)"/><rect x="88" y="47" width="96" height="116" rx="8" fill="#fff4df" transform="rotate(7 88 47)"/><path d="M98 78h55M94 99h63M91 120h48" ${stroke}/><path d="M168 146c15 0 26 11 26 26M175 131c23 0 41 18 41 41" ${stroke}/>` ,
       brainstorm: `<circle cx="120" cy="93" r="43" fill="#fff4df" stroke="#17363d" stroke-width="5"/><path d="M120 46V31M78 58 67 47M162 58l11-11M65 93H49M191 93h-16" ${stroke}/><path d="M105 140h30M110 154h20" ${stroke}/><rect x="45" y="154" width="38" height="31" rx="5" ${mint}/><rect x="157" y="151" width="40" height="34" rx="5" ${sand}/>` ,
       language: `<path d="M48 62h88v66H88l-25 22v-22H48Z" fill="#eaf6f2" stroke="#17363d" stroke-width="5"/><path d="M104 102h88v62h-21v20l-23-20h-44Z" fill="#fff4df" stroke="#17363d" stroke-width="5"/><path d="M66 84h51M66 102h35M123 124h50M123 142h34" ${stroke}/>` ,
-      search: `<circle cx="103" cy="100" r="48" fill="#eaf6f2" stroke="#17363d" stroke-width="5"/><path d="m138 136 35 35" ${stroke}/><path d="M68 100h70M103 64c15 16 15 56 0 72M103 64c-15 16-15 56 0 72M66 85h74M66 115h74" ${stroke}/>` ,
+      sources: `<rect x="48" y="55" width="116" height="116" rx="12" fill="#eaf6f2" stroke="#17363d" stroke-width="5"/><path d="M70 82h70M70 104h55M70 126h62" ${stroke}/><circle cx="159" cy="142" r="27" fill="#fff4df" stroke="#17363d" stroke-width="5"/><path d="m179 162 23 23" ${stroke}/><path d="M150 142h18M159 133v18" ${stroke}/>` ,
       organise: `<rect x="49" y="52" width="52" height="43" rx="7" ${mint}/><rect x="139" y="53" width="52" height="43" rx="7" ${sand}/><rect x="94" y="145" width="52" height="43" rx="7" ${teal}/><path d="M75 96v24h45M165 96v24h-45M120 120v24" ${stroke}/><circle cx="120" cy="120" r="8" fill="#fff" stroke="#17363d" stroke-width="5"/>` ,
-      assessed: `<rect x="61" y="42" width="118" height="143" rx="10" fill="#eaf6f2" stroke="#17363d" stroke-width="5"/><path d="M82 73h55M82 95h76M82 117h58" ${stroke}/><rect x="117" y="131" width="48" height="36" rx="7" fill="#fff4df" stroke="#17363d" stroke-width="5"/><path d="M129 131v-9c0-10 7-18 12-18s12 8 12 18v9" ${stroke}/>`
+      feedback: `<rect x="52" y="45" width="112" height="136" rx="10" fill="#eaf6f2" stroke="#17363d" stroke-width="5"/><path d="M74 76h66M74 98h48M74 120h61" ${stroke}/><path d="M151 130l34-34 16 16-34 34-24 8Z" fill="#fff4df" stroke="#17363d" stroke-width="5"/><path d="m185 96 16 16" ${stroke}/>` ,
+      assessed: `<rect x="61" y="42" width="118" height="143" rx="10" fill="#eaf6f2" stroke="#17363d" stroke-width="5"/><path d="M82 73h55M82 95h76M82 117h58" ${stroke}/><rect x="117" y="131" width="48" height="36" rx="7" fill="#fff4df" stroke="#17363d" stroke-width="5"/><path d="M129 131v-9c0-10 7-18 12-18s12 8 12 18v9" ${stroke}/>` ,
+      data: `<path d="M55 168V62M55 168h132" ${stroke}/><rect x="76" y="122" width="22" height="46" rx="4" ${mint}/><rect x="112" y="94" width="22" height="74" rx="4" ${sand}/><rect x="148" y="70" width="22" height="98" rx="4" ${teal}/><path d="m72 102 32-23 31 11 43-35" ${stroke}/><circle cx="72" cy="102" r="6" fill="#fff" stroke="#17363d" stroke-width="4"/><circle cx="104" cy="79" r="6" fill="#fff" stroke="#17363d" stroke-width="4"/><circle cx="135" cy="90" r="6" fill="#fff" stroke="#17363d" stroke-width="4"/><circle cx="178" cy="55" r="6" fill="#fff" stroke="#17363d" stroke-width="4"/>`
     };
     return start + (parts[kind] || parts.concept) + end;
   }

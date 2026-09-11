@@ -1,14 +1,16 @@
 window.STUDY_CONFIG = {
-  studyVersion: "2026-09-v4",
+  studyVersion: "2026-09-v5",
   studySite: "SE",
   institutions: [
     "Jönköping University",
     "University of Gothenburg",
-    "Other"
+    "Other Swedish institution"
   ],
-  researcherName: "[Researcher name]",
-  researcherEmail: "[researcher@university.example]",
+  researchContacts: [
+    { name: "Bruce Ferwerda", email: "bruce.ferwerda@ju.se", affiliation: "Jönköping University" },
+    { name: "Alan Said", email: "alan.said@gu.se", affiliation: "University of Gothenburg" }
+  ],
   ethicsReference: "[Ethics reference]",
-  privacyText: "[Insert institution-approved privacy/data-storage statement]",
+  privacyText: "[Insert institution-approved privacy and data-storage statement]",
   submissionEndpoint: "https://wabisabitech.hk/sasuf/api/submit.php"
 };

@@ -82,3 +82,43 @@ main{flex:1}.hero{width:min(1180px,calc(100% - 40px));margin:44px auto 88px;disp
 .age-prefer{margin:0;min-height:48px}
 .validation-target .number-input{border-color:#c94545!important}
 @media(max-width:620px){.age-entry-row{grid-template-columns:1fr}.number-input{font-size:16px}}
+
+/* v15 participant-information accordion and reduced scenario-screen density */
+.consent-list-compact{margin-bottom:18px}
+.participant-info-details{margin:18px 0;border:1px solid var(--line);border-radius:15px;background:#fbfdfc;overflow:hidden}
+.participant-info-details summary{display:flex;align-items:center;min-height:52px;padding:14px 17px;cursor:pointer;font-weight:850;color:var(--ink);user-select:none;list-style-position:inside}
+.participant-info-details summary:hover{background:#f5faf8}
+.participant-info-details[open] summary{border-bottom:1px solid var(--line);background:#f7fbf9}
+.participant-info-content{padding:4px 17px 18px;color:var(--ink-soft);line-height:1.55}
+.participant-info-content section{padding-top:13px}
+.participant-info-content h3{margin:0 0 6px;color:var(--ink);font-size:1rem}
+.participant-info-content p{margin:0;max-width:760px;font-size:.9rem}
+.participant-info-content .contacts{margin-top:9px}
+.scenario-explainer{margin-top:18px}
+.optional-tag{display:inline-block;margin-left:7px;padding:2px 7px;border-radius:999px;background:#f1f4f3;color:var(--ink-soft);font-size:.72rem;font-weight:750;vertical-align:middle}
+
+.scenario-card .scenario-rating-intro{margin-top:18px;padding:11px 14px}
+.scenario-card .scenario-measures{margin-top:10px}
+.scenario-card .scenario-measures .range-block{padding:12px 0 3px}
+.scenario-card .scenario-measures .range-question{margin-bottom:5px;font-size:.92rem;line-height:1.35}
+.scenario-card .scenario-measures .range-head{font-size:.72rem}
+.scenario-card .scenario-measures .survey-range{height:34px;margin-top:4px}
+.scenario-card .scenario-measures .range-ticks{height:17px;font-size:.66rem}
+.scenario-card .scenario-measures .range-output{margin-top:2px;padding:5px 10px;font-size:.77rem}
+.scenario-card .tradeoff-block{margin-top:17px}
+
+@media(max-width:620px){
+  .participant-info-details{margin-left:-2px;margin-right:-2px}
+  .participant-info-details summary{padding:13px 14px}
+  .participant-info-content{padding:3px 14px 15px}
+  .scenario-card .scenario-rating-intro{padding:10px 11px;margin-top:16px}
+  .scenario-card .scenario-measures{margin-top:7px}
+  .scenario-card .scenario-measures .range-block{padding:9px 0 2px}
+  .scenario-card .scenario-measures .range-question{margin-bottom:2px;font-size:.89rem}
+  .scenario-card .scenario-measures .survey-range{min-height:40px;height:40px;margin-top:2px}
+  .scenario-card .scenario-measures .range-ticks{height:17px}
+  .scenario-card .scenario-measures .range-output{font-size:.75rem;margin-top:0;padding:5px 8px}
+}
+.participant-info-details summary::after{content:"▾";margin-left:auto;color:var(--teal);font-size:.9rem;transition:transform .15s ease}
+.participant-info-details[open] summary::after{transform:rotate(180deg)}
+.participant-info-details summary::-webkit-details-marker{display:none}

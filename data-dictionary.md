@@ -1,10 +1,10 @@
-# SASUF v14 data dictionary
+# SASUF v15 data dictionary
 
 ## Top-level
 
 - `study_site`: `SE` or `SA`
 - `session_id`: random UUID
-- `study_version`: `2026-09-v14`
+- `study_version`: `2026-09-v15`
 - `institution`, `study_level`, `discipline`
 
 ## `payload`
@@ -125,7 +125,7 @@ Each scenario contains:
   - `habit`
 - `worthUsing`
 - `avoidUsing`
-- `guidanceWanted`
+- `guidanceWanted` *(optional in v15)*
 - `otherComments`
 
 ## v11 explanatory-context measures
@@ -138,7 +138,7 @@ All four are 1–7 agreement ratings.
 - `dependencyConcern`: concern that over-reliance on GenAI could reduce independent academic capability.
 
 
-## `payload.timing` (v14)
+## `payload.timing` (v15; introduced in v14)
 
 - `active_seconds`: approximate active foreground survey time. Long idle periods are capped after 120 seconds without interaction.
 - `elapsed_seconds`: wall-clock seconds from first study start to final submission; this may include breaks or Save & exit periods.

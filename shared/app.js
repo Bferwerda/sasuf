@@ -3,7 +3,7 @@
 
   const CONFIG = window.STUDY_CONFIG || {};
   const STUDY_SITE = String(CONFIG.studySite || "").toUpperCase();
-  const STUDY_VERSION = CONFIG.studyVersion || "2026-09-v14";
+  const STUDY_VERSION = CONFIG.studyVersion || "2026-09-v15";
   const STORAGE_KEY = `sasuf-genai-draft-${STUDY_SITE || "UNKNOWN"}-${STUDY_VERSION}`;
 
   const scenarios = [
@@ -261,16 +261,21 @@
         <span class="eyebrow">Participant information</span>
         <h2>About the study</h2>
         <p class="screen-intro">We are studying how university students in Sweden and South Africa choose between simpler digital tools and different levels of AI assistance for academic tasks. Everyone sees the same scenarios; this is a comparative survey rather than an experimental manipulation.</p>
-        <ul class="consent-list">
+        <ul class="consent-list consent-list-compact">
           <li>The survey takes approximately 20–25 minutes.</li>
-          <li>We do not ask for your name, email address, student number, or other direct identifiers.</li>
+          <li>Participation is voluntary, for students aged 18 or older, and you may stop at any time before submitting without giving a reason. Participating or not participating will not affect your studies, grades, services, or relationship with your university.</li>
+          <li>We do not ask for your name, email address, student number, or other direct identifiers. Please do not enter identifying information in open-text boxes.</li>
           <li>Your responses may be used in academic research publications, project reports, and the development of preliminary guidance for responsible GenAI use.</li>
-          <li>Please do not enter names or other identifying information in the optional open-text boxes.</li>
         </ul>
-        <div class="field"><div class="field-label">Ethics and participant rights</div><div class="field-hint privacy-copy">${escapeHTML(CONFIG.ethicsText || "This is voluntary academic research involving university students aged 18 years or older. Choosing whether or not to participate will not affect your studies, grades, access to university services, or relationship with your university. You may stop the survey at any time before submitting your response, without giving a reason. If you have questions about participation, research ethics, or how your data are handled, please contact one of the researchers listed below.")}</div></div>
-        <div class="notice info"><strong>About the scenario questions:</strong> you will first choose the type of assistance you would normally use. Separately, you will answer a hypothetical trade-off question about preferring a simpler, lower-resource option or a more capable AI option that requires more computing resources. We do not assume that the five real-world tool categories themselves have a fixed environmental ranking.</div>
-        <div class="contact-block"><div class="field-label">Research contacts</div>${contacts}</div>
-        <div class="field"><div class="field-label">Data storage and privacy</div><div class="field-hint privacy-copy">${escapeHTML(CONFIG.privacyText || "When you submit the survey, your response is transmitted over HTTPS to a password-protected MySQL research database on the project server at wabisabitech.hk. The research dataset stores a random study identifier, your institution and study-context information, your questionnaire responses, and study timestamps. It does not intentionally store your name, email address, student number, IP address, browser fingerprint, or user-agent. Standard web-server and security logs may separately contain routine connection metadata and are not part of the research dataset. While you are completing the survey, an unfinished draft may be stored temporarily in your browser so that the survey can recover after a refresh; this local draft is removed after successful submission. Access to the research database is restricted to the research team. Data may be analysed across the participating institutions and used in academic publications, reports, and project outputs. Only aggregated or de-identified findings will be reported. Research data will be retained and disposed of in accordance with the applicable research-data requirements of the participating institutions.")}</div></div>
+        <details class="participant-info-details">
+          <summary>Privacy, data storage and research ethics</summary>
+          <div class="participant-info-content">
+            <section><h3>Ethics and participant rights</h3><p>${escapeHTML(CONFIG.ethicsText || "This is voluntary academic research involving university students aged 18 years or older. Choosing whether or not to participate will not affect your studies, grades, access to university services, or relationship with your university. You may stop the survey at any time before submitting your response, without giving a reason. If you have questions about participation, research ethics, or how your data are handled, please contact one of the researchers listed below.")}</p></section>
+            <section><h3>Data storage and privacy</h3><p>${escapeHTML(CONFIG.privacyText || "When you submit the survey, your response is transmitted over HTTPS to a password-protected MySQL research database on the project server at wabisabitech.hk. The research dataset stores a random study identifier, your institution and study-context information, your questionnaire responses, and study timestamps. It does not intentionally store your name, email address, student number, IP address, browser fingerprint, or user-agent. Standard web-server and security logs may separately contain routine connection metadata and are not part of the research dataset. While you are completing the survey, an unfinished draft may be stored temporarily in your browser so that the survey can recover after a refresh; this local draft is removed after successful submission. Access to the research database is restricted to the research team. Data may be analysed across the participating institutions and used in academic publications, reports, and project outputs. Only aggregated or de-identified findings will be reported. Research data will be retained and disposed of in accordance with the applicable research-data requirements of the participating institutions.")}</p></section>
+            <section class="participant-contacts"><h3>Research contacts</h3>${contacts}</section>
+          </div>
+        </details>
+        <div class="notice info scenario-explainer"><strong>About the scenario questions:</strong> you will first choose the type of assistance you would normally use. Separately, you will answer a hypothetical trade-off question about preferring a simpler, lower-resource option or a more capable AI option that requires more computing resources. We do not assume that the five real-world tool categories themselves have a fixed environmental ranking.</div>
         <div class="consent-box"><label class="checkbox-choice"><input type="checkbox" id="consentCheck" ${state.consent.agreed ? "checked" : ""}><span>I have read the information above, I am at least 18 years old, and I voluntarily agree to participate.</span></label></div>
         <div id="validation" class="validation" role="alert"></div>
         ${navButtons(false, "Continue")}
@@ -450,7 +455,7 @@
         <div class="field scenario-question"><div class="field-label">Across academic tasks, which factors most influence whether and how much AI you use?</div><div class="field-hint">Select up to five.</div><div class="choice-grid">${reasonOptions.map(([value,label]) => `<label class="checkbox-choice"><input type="checkbox" name="decisionFactors" value="${value}" ${(r.decisionFactors || []).includes(value) ? "checked" : ""}><span>${escapeHTML(label)}</span></label>`).join("")}</div></div>
         <div class="field"><label for="worthUsing">In what kinds of academic situations do you think GenAI is particularly valuable or justified?</label><textarea id="worthUsing" maxlength="1500">${escapeHTML(r.worthUsing || "")}</textarea></div>
         <div class="field"><label for="avoidUsing">In what kinds of academic situations do you think students should avoid or reconsider using GenAI?</label><textarea id="avoidUsing" maxlength="1500">${escapeHTML(r.avoidUsing || "")}</textarea></div>
-        <div class="field"><label for="guidanceWanted">What should universities consider when giving students guidance on choosing between simpler digital tools and more capable AI systems?</label><textarea id="guidanceWanted" maxlength="1500">${escapeHTML(r.guidanceWanted || "")}</textarea></div>
+        <div class="field"><label for="guidanceWanted">What should universities consider when giving students guidance on choosing between simpler digital tools and more capable AI systems? <span class="optional-tag">Optional</span></label><textarea id="guidanceWanted" maxlength="1500">${escapeHTML(r.guidanceWanted || "")}</textarea></div>
         <div class="field"><label for="otherComments">Anything else you would like us to know? <span class="field-hint">(optional)</span></label><textarea id="otherComments" maxlength="1500">${escapeHTML(r.otherComments || "")}</textarea></div>
         <div id="validation" class="validation" role="alert"></div>
         ${navButtons(true, "Review & submit")}
@@ -469,7 +474,6 @@
       if (!decisionFactors.length) return showValidation("Please select at least one factor that influences your AI choices.", document.querySelector('input[name="decisionFactors"]'));
       if (!worthUsing) return showValidation("Please answer this question before continuing.", "worthUsing");
       if (!avoidUsing) return showValidation("Please answer this question before continuing.", "avoidUsing");
-      if (!guidanceWanted) return showValidation("Please answer this question before continuing.", "guidanceWanted");
       state.reflection = { decisionFactors, worthUsing, avoidUsing, guidanceWanted, otherComments: document.getElementById("otherComments").value.trim() };
       return true;
     });

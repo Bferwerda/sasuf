@@ -1,5 +1,5 @@
 window.STUDY_CONFIG = {
-  studyVersion: "2026-09-v14",
+  studyVersion: "2026-09-v15",
   studySite: "SE",
   institutions: [
     "Jönköping University",

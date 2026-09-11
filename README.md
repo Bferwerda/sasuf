@@ -1,4 +1,4 @@
-# SASUF comparative GenAI student survey — deployment package v14
+# SASUF comparative GenAI student survey — deployment package v15
 
 Static GitHub Pages frontend for the Sweden (SE) and South Africa (SA) versions of the same comparative survey.
 
@@ -16,7 +16,7 @@ Expected GitHub Pages URLs for `Bferwerda/sasuf`:
 
 Both country versions load the identical questionnaire from `shared/app.js`. The country/site is fixed by each folder's `config.js`.
 
-## v14 study design
+## v15 study design
 
 Ten academic scenarios are presented in randomized order for each participant:
 
@@ -105,9 +105,9 @@ Both survey pages submit to:
 
 The API routes fixed `study_site` values to `responses_SE` or `responses_SA`.
 
-Existing MySQL response tables do not need questionnaire-specific schema changes because the complete submission is stored in `response_json`. Replace `submit.php`, `admin-api.php`, and the standalone `admin.php` with the v14 deployment-package versions.
+Existing MySQL response tables do not need questionnaire-specific schema changes because the complete submission is stored in `response_json`. Replace `submit.php`, `admin-api.php`, and the standalone `admin.php` with the v15 deployment-package versions.
 
-The current survey schema/data version is `2026-09-v14`. v14 adds active-time paradata and data-quality review metadata while leaving the substantive questionnaire items unchanged. The admin API reports and exports v14 responses.
+The current survey schema/data version is `2026-09-v15`. v15 keeps the v14 active-time and data-quality instrumentation, makes the university-guidance open-text prompt optional, collapses detailed privacy/ethics information on the consent screen, and reduces visual density on scenario pages. The admin API reports and exports v15 responses.
 
 ## Mobile design
 
@@ -138,10 +138,10 @@ The standalone server-side `admin.php` additionally contains a **Database mainte
 
 ## Admin UI v13
 
-The admin dashboard paginates free-text responses (25 per page) and supports answer search plus site and institution filters. v14 additionally adds active-time and data-quality review tools.
+The admin dashboard paginates free-text responses (25 per page) and supports answer search plus site and institution filters. Active-time and data-quality review tools introduced in v14 continue in v15.
 
 
-## v14 timing and data-quality review
+## Timing and data-quality review (introduced in v14, retained in v15)
 
 The survey now stores both wall-clock elapsed time and an **active completion-time estimate**. Active time accumulates only while the survey is open in the foreground and pauses after 120 seconds without interaction; leaving the survey, hiding the tab, or using Save & exit pauses the timer. Active time is also stored by survey step, including each scenario page.
 

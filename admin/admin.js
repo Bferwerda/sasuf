@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const cfg=window.SASUF_ADMIN_CONFIG||{}, endpoint=cfg.apiEndpoint, tokenKey='sasuf_admin_token_v9'; let currentSite='ALL';
+  const cfg=window.SASUF_ADMIN_CONFIG||{}, endpoint=cfg.apiEndpoint, tokenKey='sasuf_admin_token_v10'; let currentSite='ALL';
   const $=id=>document.getElementById(id), loginView=$('loginView'), dashboardView=$('dashboardView'), loginForm=$('loginForm'), loginError=$('loginError');
   if(cfg.title)$('pageTitle').textContent=cfg.title;
   const token=()=>sessionStorage.getItem(tokenKey)||''; const setToken=v=>v?sessionStorage.setItem(tokenKey,v):sessionStorage.removeItem(tokenKey);

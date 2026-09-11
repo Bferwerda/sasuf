@@ -1,10 +1,10 @@
-# SASUF v9 data dictionary
+# SASUF v10 data dictionary
 
 ## Top-level
 
 - `study_site`: `SE` or `SA`
 - `session_id`: random UUID
-- `study_version`: `2026-09-v9`
+- `study_version`: `2026-09-v10`
 - `institution`, `study_level`, `discipline`
 
 ## `payload`
@@ -127,7 +127,7 @@ Each scenario contains:
 - `guidanceWanted`
 - `otherComments`
 
-## v9 explanatory-context measures
+## v10 explanatory-context measures
 
 All four are 1–7 agreement ratings.
 

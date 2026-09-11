@@ -1,5 +1,5 @@
 window.STUDY_CONFIG = {
-  studyVersion: "2026-09-v9",
+  studyVersion: "2026-09-v10",
   studySite: "SA",
   institutions: [
     "University of Fort Hare",
@@ -10,6 +10,7 @@ window.STUDY_CONFIG = {
     { name: "Nobert Jere", email: "njere@ufh.ac.za", affiliation: "University of Fort Hare" },
     { name: "Nosipho Mavuso", email: "mavuso.nosipho@gmail.com", affiliation: "Walter Sisulu University" }
   ],
-  privacyText: "Survey responses are transmitted over HTTPS and stored in a password-protected research database accessible only to the research team. The research dataset does not intentionally store names, email addresses, student numbers, IP addresses, or browser identifiers. A random study identifier is generated for each response. An unfinished response may be stored temporarily in your browser so the survey can recover after a refresh; this temporary copy is removed after successful submission. Routine web-server security logs may be created separately from the research dataset. Research data will be handled and retained in accordance with the applicable research-data requirements of the participating institutions, and findings will be reported only in aggregated or de-identified form.",
+  ethicsText: "This is voluntary academic research involving university students aged 18 years or older. Choosing whether or not to participate will not affect your studies, grades, access to university services, or relationship with your university. You may stop the survey at any time before submitting your response, without giving a reason. If you have questions about participation, research ethics, or how your data are handled, please contact one of the researchers listed below.",
+  privacyText: "When you submit the survey, your response is transmitted over HTTPS to a password-protected MySQL research database on the project server at wabisabitech.hk. The research dataset stores a random study identifier, your institution and study-context information, your questionnaire responses, and study timestamps. It does not intentionally store your name, email address, student number, IP address, browser fingerprint, or user-agent. Standard web-server and security logs may separately contain routine connection metadata and are not part of the research dataset. While you are completing the survey, an unfinished draft may be stored temporarily in your browser so that the survey can recover after a refresh; this local draft is removed after successful submission. Access to the research database is restricted to the research team. Data may be analysed across the participating institutions and used in academic publications, reports, and project outputs. Only aggregated or de-identified findings will be reported. Research data will be retained and disposed of in accordance with the applicable research-data requirements of the participating institutions.",
   submissionEndpoint: "https://wabisabitech.hk/sasuf/api/submit.php"
 };

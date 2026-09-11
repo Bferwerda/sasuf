@@ -1,4 +1,4 @@
-# SASUF comparative GenAI student survey — v9
+# SASUF comparative GenAI student survey — v10
 
 Static GitHub Pages frontend for the Sweden (SE) and South Africa (SA) versions of the same comparative survey.
 
@@ -16,7 +16,7 @@ Expected GitHub Pages URLs for `Bferwerda/sasuf`:
 
 Both country versions load the identical questionnaire from `shared/app.js`. The country/site is fixed by each folder's `config.js`.
 
-## v9 study design
+## v10 study design
 
 Ten academic scenarios are presented in randomized order for each participant:
 
@@ -105,14 +105,19 @@ Both survey pages submit to:
 
 The API routes fixed `study_site` values to `responses_SE` or `responses_SA`.
 
-Existing MySQL response tables do not need questionnaire-specific schema changes because the complete submission is stored in `response_json`. Replace `submit.php`, `admin-api.php`, and the standalone `admin.php` with the v9 versions.
+Existing MySQL response tables do not need questionnaire-specific schema changes because the complete submission is stored in `response_json`. Replace `submit.php`, `admin-api.php`, and the standalone `admin.php` with the v10 versions.
 
-The v9 admin API deliberately reports and exports only `2026-09-v9` responses so previous test/pilot versions cannot contaminate the deployed dataset.
+The v10 admin API deliberately reports and exports only `2026-09-v10` responses so previous test/pilot versions cannot contaminate the deployed dataset.
 
 ## Mobile design
 
 The survey is mobile-first: large native range controls, 48px-class touch targets, one scenario per page, a one-column scenario layout on phones, stacked choices, compact task illustrations, full-width primary navigation, and responsive trade-off labels. Admin tables scroll horizontally inside their own containers rather than causing page-level overflow.
 
-## v9 explanatory-context additions
+## v10 explanatory-context additions
 
-The v9 instrument adds one non-identifying educational-background item (whether most pre-university education was completed in the current study country) and four 1–7 explanatory measures: peer GenAI-use norm, perceived lecturer support for responsible GenAI use, preference for clear GenAI rules, and concern about over-reliance / loss of independent academic capability. They are included in backend validation, dashboard summaries, and the flat analysis export.
+The v10 instrument adds one non-identifying educational-background item (whether most pre-university education was completed in the current study country) and four 1–7 explanatory measures: peer GenAI-use norm, perceived lecturer support for responsible GenAI use, preference for clear GenAI rules, and concern about over-reliance / loss of independent academic capability. They are included in backend validation, dashboard summaries, and the flat analysis export.
+
+
+## v10 participant information
+
+The participant introduction now contains separate **Ethics and participant rights** and **Data storage and privacy** sections. It does not claim a formal ethics approval number. The storage text accurately describes HTTPS submission, the project MySQL database, the variables stored in the research dataset, temporary browser draft storage, possible routine server logs, restricted research-team access, de-identified reporting, and institution-governed retention/disposal.

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive">
-  <title>SASUF survey dashboard</title><link rel="stylesheet" href="admin.css">
+  <title>SASUF survey dashboard</title><link rel="stylesheet" href="admin.css?v=12">
 </head>
 <body><main class="shell">
   <section id="loginView" class="login-card">
@@ -37,7 +37,9 @@
 
     <section class="section"><h2>What matters to students?</h2><p class="muted section-note">Number of participants selecting each factor in the final decision-factors question.</p><article class="card"><div id="decisionFactors"></div></article></section>
 
-    <section class="section"><h2>Recent submissions</h2><p class="muted section-note">Participant UUIDs and open-text responses are not displayed here.</p><div class="table-wrap"><table id="recentTable"></table></div></section>
+    <section class="section"><h2>Free-text responses</h2><p class="muted section-note">Browse individual open-text answers with limited study context. Participant UUIDs are not shown.</p><div class="free-text-tabs" role="tablist" aria-label="Free-text question"><button class="free-text-tab active" data-free-key="worthUsing" role="tab">When GenAI is valuable <span class="free-count" data-free-count="worthUsing"></span></button><button class="free-text-tab" data-free-key="avoidUsing" role="tab">When GenAI should be avoided <span class="free-count" data-free-count="avoidUsing"></span></button><button class="free-text-tab" data-free-key="guidanceWanted" role="tab">Guidance wanted <span class="free-count" data-free-count="guidanceWanted"></span></button><button class="free-text-tab" data-free-key="otherComments" role="tab">Other comments <span class="free-count" data-free-count="otherComments"></span></button></div><div id="freeTextList" class="free-text-list"></div></section>
+
+    <section class="section"><h2>Recent submissions</h2><p class="muted section-note">Participant UUIDs are not displayed here.</p><div class="table-wrap"><table id="recentTable"></table></div></section>
     <footer>Dashboard data is fetched from the protected API at wabisabitech.hk. No database credentials or admin password are stored in GitHub.</footer>
   </section>
-</main><script src="config.js"></script><script src="admin.js"></script></body></html>
+</main><script src="config.js?v=12"></script><script src="admin.js?v=12"></script></body></html>

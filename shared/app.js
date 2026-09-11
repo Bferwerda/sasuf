@@ -789,12 +789,6 @@
     if (!contacts.length) return '<p class="field-hint">[Research contact]</p>';
     return `<div class="contacts">${contacts.map(c => `<div class="contact"><strong>${escapeHTML(c.name)}</strong>${c.affiliation ? `<span>${escapeHTML(c.affiliation)}</span>` : ""}${c.email ? `<a href="mailto:${escapeHTML(c.email)}">${escapeHTML(c.email)}</a>` : ""}</div>`).join("")}</div>`;
   }
-  function renderFooterContacts() {
-    const root = document.getElementById("footerContacts");
-    if (!root) return;
-    const contacts = Array.isArray(CONFIG.researchContacts) ? CONFIG.researchContacts : [];
-    root.textContent = contacts.length ? `Research contacts: ${contacts.map(x => x.name).join(" · ")}` : "Research contact details are provided in the participant information.";
-  }
 
   function scenarioSVG(kind) {
     const start = `<svg viewBox="0 0 240 220" xmlns="http://www.w3.org/2000/svg"><rect x="12" y="12" width="216" height="196" rx="28" fill="#fff"/><circle cx="190" cy="48" r="24" fill="#f3b960" opacity=".65"/><circle cx="49" cy="178" r="31" fill="#8fd3c1" opacity=".48"/>`;

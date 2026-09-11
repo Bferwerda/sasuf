@@ -1,4 +1,4 @@
-# SASUF comparative GenAI student survey — v11
+# SASUF comparative GenAI student survey — deployment package v12
 
 Static GitHub Pages frontend for the Sweden (SE) and South Africa (SA) versions of the same comparative survey.
 
@@ -105,9 +105,9 @@ Both survey pages submit to:
 
 The API routes fixed `study_site` values to `responses_SE` or `responses_SA`.
 
-Existing MySQL response tables do not need questionnaire-specific schema changes because the complete submission is stored in `response_json`. Replace `submit.php`, `admin-api.php`, and the standalone `admin.php` with the v11 versions.
+Existing MySQL response tables do not need questionnaire-specific schema changes because the complete submission is stored in `response_json`. Replace `submit.php`, `admin-api.php`, and the standalone `admin.php` with the v12 deployment-package versions.
 
-The v11 admin API deliberately reports and exports only `2026-09-v11` responses so previous test/pilot versions cannot contaminate the deployed dataset.
+The survey schema/data version intentionally remains `2026-09-v11` because this package changes only the administration interface. The admin API continues to report and export only `2026-09-v11` responses, so deploying the admin update does not split an ongoing dataset.
 
 ## Mobile design
 
@@ -129,3 +129,9 @@ The participant introduction now contains separate **Ethics and participant righ
 - The assistance slider displays the selected assistance type and description rather than repeating the numeric level.
 - Missing-answer validation scrolls directly to the first unanswered question, visually highlights it, shows the error beside that question, and clears the error as soon as the participant changes an answer.
 - The public study footer was removed from the SE and SA survey pages; research contacts remain in the participant-information section.
+
+## v12 admin update
+
+This deployment package does **not** change the participant questionnaire or study schema. It adds an authenticated free-text browser to both admin dashboards. The four reflection questions can be browsed as tabs, with each response shown together with site, response number, submission time, institution, study level, and discipline. Participant UUIDs are not shown in this view.
+
+The standalone server-side `admin.php` additionally contains a **Database maintenance** section with an **Empty response database** button. This control is not present on the GitHub-hosted admin page. Clearing requires a warning confirmation plus typing `DELETE ALL RESPONSES`, and the backend accepts the destructive action only from the same-origin local admin page. It deletes all rows from `responses_SE` and `responses_SA` across all survey versions; it does not alter the table structures or server configuration.

@@ -3,7 +3,7 @@
 
   const CONFIG = window.STUDY_CONFIG || {};
   const STUDY_SITE = String(CONFIG.studySite || "").toUpperCase();
-  const STUDY_VERSION = CONFIG.studyVersion || "2026-09-v7";
+  const STUDY_VERSION = CONFIG.studyVersion || "2026-09-v9";
   const STORAGE_KEY = `sasuf-genai-draft-${STUDY_SITE || "UNKNOWN"}-${STUDY_VERSION}`;
 
   const scenarios = [
@@ -178,17 +178,17 @@
         <h2>About the study</h2>
         <p class="screen-intro">We are studying how university students in Sweden and South Africa choose between simpler digital tools and different levels of AI assistance for academic tasks. Everyone sees the same scenarios; this is a comparative survey rather than an experimental manipulation.</p>
         <ul class="consent-list">
-          <li>Participation is voluntary and you may stop before submitting.</li>
-          <li>The survey takes approximately 18–22 minutes.</li>
-          <li>We do not ask for your name or email address.</li>
+          <li>Participation is voluntary. Choosing whether or not to participate will not affect your studies, grades, or relationship with your university.</li>
+          <li>You may stop at any time before submitting your response.</li>
+          <li>The survey takes approximately 20–25 minutes.</li>
+          <li>We do not ask for your name, email address, student number, or other direct identifiers.</li>
           <li>Your responses may be used in research publications and to develop preliminary guidance for responsible GenAI use.</li>
-          <li>Only aggregated or anonymised findings will be reported.</li>
+          <li>Only aggregated or de-identified findings will be reported.</li>
+          <li>Please do not enter names or other identifying information in the optional open-text boxes.</li>
         </ul>
         <div class="notice info"><strong>About the scenario questions:</strong> you will first choose the type of assistance you would normally use. Separately, you will answer a hypothetical trade-off question about preferring a simpler, lower-resource option or a more capable AI option that requires more computing resources. We do not assume that the five real-world tool categories themselves have a fixed environmental ranking.</div>
         <div class="contact-block"><div class="field-label">Research contacts</div>${contacts}</div>
-        <div class="field"><div class="field-label">Ethics reference</div><div>${escapeHTML(CONFIG.ethicsReference || "[Ethics reference]")}</div></div>
-        <div class="field"><div class="field-label">Data storage and privacy</div><div class="field-hint privacy-copy">${escapeHTML(CONFIG.privacyText || "[Insert institution-approved privacy and data-storage statement]")}</div></div>
-        ${(String(CONFIG.ethicsReference || "").includes("[") || String(CONFIG.privacyText || "").includes("[")) ? '<div class="notice warning"><strong>Before recruitment:</strong> replace the bracketed ethics and privacy placeholders in <code>config.js</code>.</div>' : ''}
+        <div class="field"><div class="field-label">Data storage and privacy</div><div class="field-hint privacy-copy">${escapeHTML(CONFIG.privacyText || "Survey responses are transmitted over HTTPS and stored in a password-protected research database accessible only to the research team. The research dataset does not intentionally store names, email addresses, student numbers, IP addresses, or browser identifiers. A random study identifier is generated for each response. An unfinished response may be stored temporarily in your browser so the survey can recover after a refresh; this temporary copy is removed after successful submission. Routine web-server security logs may be created separately from the research dataset. Research data will be handled and retained in accordance with the applicable research-data requirements of the participating institutions, and findings will be reported only in aggregated or de-identified form.")}</div></div>
         <div class="consent-box"><label class="checkbox-choice"><input type="checkbox" id="consentCheck" ${state.consent.agreed ? "checked" : ""}><span>I have read the information above, I am at least 18 years old, and I voluntarily agree to participate.</span></label></div>
         <div id="validation" class="validation" role="alert"></div>
         ${navButtons(false, "Continue")}
@@ -207,18 +207,23 @@
       <article class="screen-card">
         <span class="eyebrow">Study context · ${escapeHTML(siteName)}</span>
         <h2>About you and your studies</h2>
-        <p class="screen-intro">These questions help us interpret differences between higher-education contexts without collecting directly identifying information.</p>
+        <p class="screen-intro">These questions help us interpret differences between higher-education contexts without collecting directly identifying information. The study site refers to where you study, not your nationality.</p>
         ${selectField("institution", "Current institution", [["", "Select…"], ...institutions.map(x => [x, x])], c.institution)}
         ${selectField("studyLevel", "Current study level", [["", "Select…"], ["Bachelor", "Bachelor's / undergraduate"], ["Master", "Master's / postgraduate taught"], ["Doctoral", "Doctoral / PhD"], ["Other", "Other"]], c.studyLevel)}
+        ${selectField("programmeYear", "Year in your current programme", [["", "Select…"], ["1", "First year"], ["2", "Second year"], ["3", "Third year"], ["4+", "Fourth year or later"], ["Not applicable", "Not applicable / programme is not organised by year"]], c.programmeYear)}
         ${selectField("discipline", "Broad field of study", [["", "Select…"], ["Computing", "Computer science / IT / engineering"], ["Business", "Business / economics / management"], ["Education", "Education"], ["Health", "Health / medicine"], ["Humanities", "Humanities / languages"], ["Social Sciences", "Social sciences"], ["Natural Sciences", "Natural sciences"], ["Other", "Other"]], c.discipline)}
+        ${selectField("ageGroup", "Age group", [["", "Select…"], ["18-20", "18–20"], ["21-24", "21–24"], ["25-29", "25–29"], ["30-39", "30–39"], ["40+", "40 or older"], ["Prefer not to say", "Prefer not to say"]], c.ageGroup)}
+        ${selectField("gender", "Gender", [["", "Select…"], ["Woman", "Woman"], ["Man", "Man"], ["Non-binary or another gender", "Non-binary or another gender"], ["Prefer not to say", "Prefer not to say"]], c.gender)}
+        ${selectField("programmeLanguageFirst", "Is the main language used in your programme one of your first or home languages?", [["", "Select…"], ["Yes", "Yes"], ["No", "No"], ["Prefer not to say", "Prefer not to say"]], c.programmeLanguageFirst)}
+        ${selectField("preUniversitySameCountry", "Did you complete most of your education before university in the same country in which you are currently studying?", [["", "Select…"], ["Yes", "Yes"], ["No", "No"], ["Prefer not to say", "Prefer not to say"]], c.preUniversitySameCountry)}
         ${rangeScale("languageComfort", "How comfortable are you studying in the main language used in your programme?", c.languageComfort, "Not at all comfortable", "Very comfortable")}
         <div id="validation" class="validation" role="alert"></div>
         ${navButtons(true, "Continue")}
       </article>`;
     bindRangeScales();
     bindNav(() => {
-      const ids = ["institution", "studyLevel", "discipline"];
-      if (ids.some(id => !document.getElementById(id).value) || !getScaleValue("languageComfort")) return showValidation("Please answer all questions on this page.");
+      const ids = ["institution", "studyLevel", "programmeYear", "discipline", "ageGroup", "gender", "programmeLanguageFirst", "preUniversitySameCountry"];
+      if (ids.some(id => !document.getElementById(id).value) || !getScaleValue("languageComfort")) return showValidation("Please answer all questions on this page. You may choose 'Prefer not to say' where offered.");
       state.context = { ...collectValues(ids), languageComfort: getScaleValue("languageComfort"), studySite: STUDY_SITE };
       return true;
     });
@@ -237,6 +242,7 @@
         ${yesNoUnsure("paidAccess", "Do you currently have access to a paid or premium GenAI service?", b.paidAccess)}
         ${yesNoUnsure("institutionalAccess", "Does your university provide you with access to a Generative AI service or licence?", b.institutionalAccess)}
         ${yesNoUnsure("guidance", "Has your institution or programme given you guidance about acceptable GenAI use?", b.guidance)}
+        ${yesNoUnsure("formalTraining", "Have you received formal teaching, training, or instruction from your university about how to use Generative AI effectively?", b.formalTraining)}
         ${yesNoUnsure("resourceAwareness", "Before this survey, were you aware that different digital and AI tools can require substantially different amounts of computing resources?", b.resourceAwareness)}
         ${yesNoUnsureNA("localContextMismatch", "Have you encountered GenAI responses that were poorly suited to your local, cultural or regional context?", b.localContextMismatch)}
         <div id="validation" class="validation" role="alert"></div>
@@ -246,11 +252,11 @@
     bindNav(() => {
       const frequency = document.getElementById("useFrequency").value;
       const purposes = [...document.querySelectorAll('input[name="purposes"]:checked')].map(x => x.value);
-      const paidAccess = getRadioValue("paidAccess"), institutionalAccess = getRadioValue("institutionalAccess"), guidance = getRadioValue("guidance"), resourceAwareness = getRadioValue("resourceAwareness"), localContextMismatch = getRadioValue("localContextMismatch");
-      if (!frequency || !purposes.length || !paidAccess || !institutionalAccess || !guidance || !resourceAwareness || !localContextMismatch) return showValidation("Please answer all questions on this page.");
+      const paidAccess = getRadioValue("paidAccess"), institutionalAccess = getRadioValue("institutionalAccess"), guidance = getRadioValue("guidance"), formalTraining = getRadioValue("formalTraining"), resourceAwareness = getRadioValue("resourceAwareness"), localContextMismatch = getRadioValue("localContextMismatch");
+      if (!frequency || !purposes.length || !paidAccess || !institutionalAccess || !guidance || !formalTraining || !resourceAwareness || !localContextMismatch) return showValidation("Please answer all questions on this page.");
       if (frequency === "Never" && !purposes.includes("not_using")) return showValidation("You selected 'Never'. Please also select 'I have not used GenAI for my studies'.");
       if (frequency !== "Never" && purposes.includes("not_using")) return showValidation("Your use-frequency answer indicates some GenAI use. Please select the purposes that apply instead of 'I have not used GenAI'.");
-      Object.assign(state.baseline, { useFrequency: frequency, purposes, paidAccess, institutionalAccess, guidance, resourceAwareness, localContextMismatch });
+      Object.assign(state.baseline, { useFrequency: frequency, purposes, paidAccess, institutionalAccess, guidance, formalTraining, resourceAwareness, localContextMismatch });
       return true;
     });
   }
@@ -268,11 +274,14 @@
         ${rangeScale("integrityConcern", "I am concerned about unintentionally violating academic-integrity rules when using GenAI.", b.integrityConcern)}
         ${rangeScale("languageBenefit", "GenAI can help me overcome language-related difficulties in my studies.", b.languageBenefit)}
         ${rangeScale("equalAccess", "Students at my institution have reasonably equal opportunities to access and use GenAI tools.", b.equalAccess)}
+        ${rangeScale("peerNorm", "Using Generative AI for coursework is common among students in my programme.", b.peerNorm)}
+        ${rangeScale("lecturerNorm", "My lecturers generally view responsible use of Generative AI positively.", b.lecturerNorm)}
+        ${rangeScale("rulePreference", "I prefer clear rules about when Generative AI is and is not allowed in my coursework.", b.rulePreference)}
         <div id="validation" class="validation" role="alert"></div>
         ${navButtons(true, "Continue")}
       </article>`;
     bindRangeScales();
-    bindNav(() => saveScaleGroup(["internetAccess", "costConstraint", "guidanceUnderstanding", "integrityConcern", "languageBenefit", "equalAccess"]));
+    bindNav(() => saveScaleGroup(["internetAccess", "costConstraint", "guidanceUnderstanding", "integrityConcern", "languageBenefit", "equalAccess", "peerNorm", "lecturerNorm", "rulePreference"]));
   }
 
   function renderLiteracy() {
@@ -288,12 +297,13 @@
         ${rangeScale("privacyKnowledge", "I know what kinds of information I should not share with a GenAI system.", b.privacyKnowledge)}
         ${rangeScale("sustainabilityImportance", "The environmental and computing-resource implications of digital tools are important to me.", b.sustainabilityImportance)}
         ${rangeScale("lowerResourcePreference", "If two options work equally well, I prefer the option that uses fewer computing resources.", b.lowerResourcePreference)}
+        ${rangeScale("dependencyConcern", "I am concerned that relying too much on Generative AI could reduce my ability to perform academic tasks independently.", b.dependencyConcern)}
         ${rangeScale("careerImportance", "Being able to use GenAI effectively will be important for my future work or career.", b.careerImportance)}
         <div id="validation" class="validation" role="alert"></div>
         ${navButtons(true, "Continue to scenarios")}
       </article>`;
     bindRangeScales();
-    bindNav(() => saveScaleGroup(["aiConfidence", "aiLiteracy", "verifyOutput", "privacyKnowledge", "sustainabilityImportance", "lowerResourcePreference", "careerImportance"]));
+    bindNav(() => saveScaleGroup(["aiConfidence", "aiLiteracy", "verifyOutput", "privacyKnowledge", "sustainabilityImportance", "lowerResourcePreference", "dependencyConcern", "careerImportance"]));
   }
 
   function renderScenario(step) {
@@ -478,17 +488,17 @@
     const step = steps[state.currentStep];
     try {
       if (step.type === "context") {
-        state.context = { ...collectValues(["institution", "studyLevel", "discipline"]), languageComfort: getScaleValue("languageComfort"), studySite: STUDY_SITE };
+        state.context = { ...collectValues(["institution", "studyLevel", "programmeYear", "discipline", "ageGroup", "gender", "programmeLanguageFirst", "preUniversitySameCountry"]), languageComfort: getScaleValue("languageComfort"), studySite: STUDY_SITE };
       } else if (step.type === "practice") {
         Object.assign(state.baseline, {
           useFrequency: document.getElementById("useFrequency")?.value || "",
           purposes: [...document.querySelectorAll('input[name="purposes"]:checked')].map(x => x.value),
-          paidAccess: getRadioValue("paidAccess"), institutionalAccess: getRadioValue("institutionalAccess"), guidance: getRadioValue("guidance"), resourceAwareness: getRadioValue("resourceAwareness"), localContextMismatch: getRadioValue("localContextMismatch")
+          paidAccess: getRadioValue("paidAccess"), institutionalAccess: getRadioValue("institutionalAccess"), guidance: getRadioValue("guidance"), formalTraining: getRadioValue("formalTraining"), resourceAwareness: getRadioValue("resourceAwareness"), localContextMismatch: getRadioValue("localContextMismatch")
         });
       } else if (step.type === "access") {
-        ["internetAccess", "costConstraint", "guidanceUnderstanding", "integrityConcern", "languageBenefit", "equalAccess"].forEach(id => { state.baseline[id] = getScaleValue(id); });
+        ["internetAccess", "costConstraint", "guidanceUnderstanding", "integrityConcern", "languageBenefit", "equalAccess", "peerNorm", "lecturerNorm", "rulePreference"].forEach(id => { state.baseline[id] = getScaleValue(id); });
       } else if (step.type === "literacy") {
-        ["aiConfidence", "aiLiteracy", "verifyOutput", "privacyKnowledge", "sustainabilityImportance", "lowerResourcePreference", "careerImportance"].forEach(id => { state.baseline[id] = getScaleValue(id); });
+        ["aiConfidence", "aiLiteracy", "verifyOutput", "privacyKnowledge", "sustainabilityImportance", "lowerResourcePreference", "dependencyConcern", "careerImportance"].forEach(id => { state.baseline[id] = getScaleValue(id); });
       } else if (step.type === "scenario") {
         const s = step.scenario;
         const answers = { assistanceLevel: getScaleValue(`${s.id}_assistance`), resourceTradeoff: getScaleValue(`${s.id}_tradeoff`) };

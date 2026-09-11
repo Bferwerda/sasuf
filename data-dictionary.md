@@ -1,10 +1,10 @@
-# SASUF v7 data dictionary
+# SASUF v9 data dictionary
 
 ## Top-level
 
 - `study_site`: `SE` or `SA`
-- `session_id`: anonymous UUID
-- `study_version`: `2026-09-v7`
+- `session_id`: random UUID
+- `study_version`: `2026-09-v9`
 - `institution`, `study_level`, `discipline`
 
 ## `payload`
@@ -18,7 +18,12 @@
 
 - `institution`
 - `studyLevel`
+- `programmeYear`: `1`, `2`, `3`, `4+`, or `Not applicable`
 - `discipline`
+- `ageGroup`: `18-20`, `21-24`, `25-29`, `30-39`, `40+`, or `Prefer not to say`
+- `gender`: `Woman`, `Man`, `Non-binary or another gender`, or `Prefer not to say`
+- `programmeLanguageFirst`: `Yes`, `No`, or `Prefer not to say`
+- `preUniversitySameCountry`: whether most pre-university education was completed in the current study country (Yes / No / Prefer not to say)
 - `languageComfort`: 1–7
 - `studySite`
 
@@ -42,6 +47,7 @@ Categorical / multiple response:
 - `paidAccess`: Yes / No / Unsure
 - `institutionalAccess`: Yes / No / Unsure
 - `guidance`: Yes / No / Unsure
+- `formalTraining`: Yes / No / Unsure
 - `resourceAwareness`: Yes / No / Unsure
 - `localContextMismatch`: Yes / No / Unsure / Not applicable
 
@@ -52,12 +58,16 @@ Categorical / multiple response:
 - `integrityConcern`
 - `languageBenefit`
 - `equalAccess`
+- `peerNorm`
+- `lecturerNorm`
+- `rulePreference`
 - `aiConfidence`
 - `aiLiteracy`
 - `verifyOutput`
 - `privacyKnowledge`
 - `sustainabilityImportance`
 - `lowerResourcePreference`
+- `dependencyConcern`
 - `careerImportance`
 
 ## `payload.scenarios`
@@ -94,7 +104,7 @@ Each scenario contains:
   - 4 = neutral / depends
   - 7 = strongly prefer more capable AI / more computing resources
 
-`assistanceLevel` should not be interpreted as a quantitative environmental-impact scale. For descriptive analysis, use category distributions. `resourceTradeoff` is the direct hypothetical capability/resource preference measure.
+`assistanceLevel` should not be interpreted as a quantitative environmental-impact scale. For descriptive analysis, use category distributions or a categorical/ordinal model. `resourceTradeoff` is the direct hypothetical capability/resource preference measure.
 
 ## `payload.reflection`
 
@@ -116,3 +126,12 @@ Each scenario contains:
 - `avoidUsing`
 - `guidanceWanted`
 - `otherComments`
+
+## v9 explanatory-context measures
+
+All four are 1–7 agreement ratings.
+
+- `peerNorm`: perceived prevalence of GenAI use for coursework among programme peers.
+- `lecturerNorm`: perceived lecturer support for responsible GenAI use.
+- `rulePreference`: preference for clear rules about when GenAI is and is not allowed.
+- `dependencyConcern`: concern that over-reliance on GenAI could reduce independent academic capability.

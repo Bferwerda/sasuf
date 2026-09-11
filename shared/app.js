@@ -3,7 +3,7 @@
 
   const CONFIG = window.STUDY_CONFIG || {};
   const STUDY_SITE = String(CONFIG.studySite || "").toUpperCase();
-  const STUDY_VERSION = CONFIG.studyVersion || "2026-09-v5";
+  const STUDY_VERSION = CONFIG.studyVersion || "2026-09-v6";
   const STORAGE_KEY = `sasuf-genai-draft-${STUDY_SITE || "UNKNOWN"}-${STUDY_VERSION}`;
 
   const scenarios = [
@@ -20,17 +20,16 @@
   const assistanceLevels = [
     { value: 1, label: "No AI assistance", short: "No AI", description: "Do the task without AI assistance, using your own work and ordinary course materials." },
     { value: 2, label: "Conventional digital tool", short: "Conventional", description: "Use a non-generative tool such as web search, a dictionary, spell-checker, calculator or reference source." },
-    { value: 3, label: "Targeted / lightweight AI", short: "Targeted AI", description: "Use a limited AI feature for one task, such as grammar suggestions, translation or autocomplete." },
+    { value: 3, label: "Specialized AI tool", short: "Specialized AI", description: "Use an AI feature designed mainly for one function, such as grammar suggestions, translation or autocomplete." },
     { value: 4, label: "General-purpose GenAI", short: "GenAI", description: "Use a standard conversational Generative AI tool to generate, transform or explain content." },
-    { value: 5, label: "Advanced GenAI", short: "Advanced", description: "Use a more capable reasoning, research or large-context mode/model for a more demanding task." }
+    { value: 5, label: "Advanced / reasoning GenAI", short: "Advanced AI", description: "Use a more capable reasoning, research or large-context mode/model for a demanding task." }
   ];
 
   const scenarioMeasures = [
     { key: "appropriate", text: "Using AI for this task would be appropriate.", left: "Strongly disagree", right: "Strongly agree" },
     { key: "value", text: "AI assistance would add meaningful value compared with a simpler option.", left: "Strongly disagree", right: "Strongly agree" },
-    { key: "alternative", text: "A lower-capability or non-AI option would be adequate for this task.", left: "Strongly disagree", right: "Strongly agree" },
-    { key: "learning", text: "AI assistance would support my learning rather than replace it.", left: "Strongly disagree", right: "Strongly agree" },
-    { key: "resourceInfluence", text: "Computing and resource use would influence the level of AI assistance I choose.", left: "Strongly disagree", right: "Strongly agree" }
+    { key: "alternative", text: "A simpler digital or non-AI option would adequately meet my needs for this task.", left: "Strongly disagree", right: "Strongly agree" },
+    { key: "learning", text: "AI assistance would support my learning rather than replace it.", left: "Strongly disagree", right: "Strongly agree" }
   ];
 
   const purposeOptions = [
@@ -76,6 +75,11 @@
   state.baseline ||= {};
   state.scenarios ||= {};
   state.reflection ||= {};
+  const scenarioIds = scenarios.map(s => s.id);
+  if (!Array.isArray(state.scenarioOrder) || state.scenarioOrder.length !== scenarioIds.length || state.scenarioOrder.some(id => !scenarioIds.includes(id))) {
+    state.scenarioOrder = shuffledCopy(scenarioIds);
+  }
+  const orderedScenarios = state.scenarioOrder.map(id => scenarios.find(s => s.id === id)).filter(Boolean);
 
   const steps = [
     { type: "consent", title: "About the study" },
@@ -83,7 +87,7 @@
     { type: "practice", title: "Your current GenAI use" },
     { type: "access", title: "Access, guidance and context" },
     { type: "literacy", title: "AI literacy and attitudes" },
-    ...scenarios.map((scenario, index) => ({ type: "scenario", title: scenario.title, scenario, scenarioNumber: index + 1 })),
+    ...orderedScenarios.map((scenario, index) => ({ type: "scenario", title: scenario.title, scenario, scenarioNumber: index + 1 })),
     { type: "reflection", title: "Final reflections" },
     { type: "submit", title: "Submit" }
   ];
@@ -171,7 +175,7 @@
           <li>Your responses may be used in research publications and to develop preliminary guidance for responsible GenAI use.</li>
           <li>Only aggregated or anonymised findings will be reported.</li>
         </ul>
-        <div class="notice info"><strong>About the assistance scale:</strong> later you will choose between five levels, from no AI assistance to advanced GenAI. The scale represents increasing AI capability, not a precise measure of energy use. Actual computing requirements vary by system and task.</div>
+        <div class="notice info"><strong>About the scenario questions:</strong> you will first choose the type of assistance you would normally use. Separately, you will answer a hypothetical trade-off question about preferring a simpler, lower-resource option or a more capable AI option that requires more computing resources. We do not assume that the five real-world tool categories themselves have a fixed environmental ranking.</div>
         <div class="contact-block"><div class="field-label">Research contacts</div>${contacts}</div>
         <div class="field"><div class="field-label">Ethics reference</div><div>${escapeHTML(CONFIG.ethicsReference || "[Ethics reference]")}</div></div>
         <div class="field"><div class="field-label">Data storage and privacy</div><div class="field-hint privacy-copy">${escapeHTML(CONFIG.privacyText || "[Insert institution-approved privacy and data-storage statement]")}</div></div>
@@ -222,6 +226,7 @@
         ${selectField("useFrequency", "How often have you used Generative AI for your studies during the past 12 months?", [["", "Select…"], ["Never", "Never"], ["Less than monthly", "Less than once a month"], ["Monthly", "A few times a month"], ["Weekly", "A few times a week"], ["Daily", "Daily or almost daily"]], b.useFrequency)}
         <div class="field"><div class="field-label">What have you used GenAI for in your studies during the past 12 months?</div><div class="field-hint">Select all that apply.</div><div class="choice-grid purpose-grid">${purposeOptions.map(([value,label]) => `<label class="checkbox-choice"><input type="checkbox" name="purposes" value="${value}" ${selectedPurposes.includes(value) ? "checked" : ""}><span>${escapeHTML(label)}</span></label>`).join("")}</div></div>
         ${yesNoUnsure("paidAccess", "Do you currently have access to a paid or premium GenAI service?", b.paidAccess)}
+        ${yesNoUnsure("institutionalAccess", "Does your university provide you with access to a Generative AI service or licence?", b.institutionalAccess)}
         ${yesNoUnsure("guidance", "Has your institution or programme given you guidance about acceptable GenAI use?", b.guidance)}
         ${yesNoUnsure("resourceAwareness", "Before this survey, were you aware that different digital and AI tools can require substantially different amounts of computing resources?", b.resourceAwareness)}
         ${yesNoUnsureNA("localContextMismatch", "Have you encountered GenAI responses that were poorly suited to your local, cultural or regional context?", b.localContextMismatch)}
@@ -232,11 +237,11 @@
     bindNav(() => {
       const frequency = document.getElementById("useFrequency").value;
       const purposes = [...document.querySelectorAll('input[name="purposes"]:checked')].map(x => x.value);
-      const paidAccess = getRadioValue("paidAccess"), guidance = getRadioValue("guidance"), resourceAwareness = getRadioValue("resourceAwareness"), localContextMismatch = getRadioValue("localContextMismatch");
-      if (!frequency || !purposes.length || !paidAccess || !guidance || !resourceAwareness || !localContextMismatch) return showValidation("Please answer all questions on this page.");
+      const paidAccess = getRadioValue("paidAccess"), institutionalAccess = getRadioValue("institutionalAccess"), guidance = getRadioValue("guidance"), resourceAwareness = getRadioValue("resourceAwareness"), localContextMismatch = getRadioValue("localContextMismatch");
+      if (!frequency || !purposes.length || !paidAccess || !institutionalAccess || !guidance || !resourceAwareness || !localContextMismatch) return showValidation("Please answer all questions on this page.");
       if (frequency === "Never" && !purposes.includes("not_using")) return showValidation("You selected 'Never'. Please also select 'I have not used GenAI for my studies'.");
       if (frequency !== "Never" && purposes.includes("not_using")) return showValidation("Your use-frequency answer indicates some GenAI use. Please select the purposes that apply instead of 'I have not used GenAI'.");
-      Object.assign(state.baseline, { useFrequency: frequency, purposes, paidAccess, guidance, resourceAwareness, localContextMismatch });
+      Object.assign(state.baseline, { useFrequency: frequency, purposes, paidAccess, institutionalAccess, guidance, resourceAwareness, localContextMismatch });
       return true;
     });
   }
@@ -253,11 +258,12 @@
         ${rangeScale("guidanceUnderstanding", "I understand what kinds of GenAI use are permitted in my courses or programme.", b.guidanceUnderstanding)}
         ${rangeScale("integrityConcern", "I am concerned about unintentionally violating academic-integrity rules when using GenAI.", b.integrityConcern)}
         ${rangeScale("languageBenefit", "GenAI can help me overcome language-related difficulties in my studies.", b.languageBenefit)}
+        ${rangeScale("equalAccess", "Students at my institution have reasonably equal opportunities to access and use GenAI tools.", b.equalAccess)}
         <div id="validation" class="validation" role="alert"></div>
         ${navButtons(true, "Continue")}
       </article>`;
     bindRangeScales();
-    bindNav(() => saveScaleGroup(["internetAccess", "costConstraint", "guidanceUnderstanding", "integrityConcern", "languageBenefit"]));
+    bindNav(() => saveScaleGroup(["internetAccess", "costConstraint", "guidanceUnderstanding", "integrityConcern", "languageBenefit", "equalAccess"]));
   }
 
   function renderLiteracy() {
@@ -293,9 +299,9 @@
             <h2>${escapeHTML(s.title)}</h2>
             <p class="scenario-text">${escapeHTML(s.text)}</p>
             ${assistanceSlider(s.id, saved.assistanceLevel)}
-            <details class="level-guide" ${step.scenarioNumber === 1 ? "open" : ""}><summary>What do the five levels mean?</summary><div class="level-guide-grid">${assistanceLevels.map(level => `<div><span class="level-number">${level.value}</span><p><strong>${escapeHTML(level.label)}</strong><br>${escapeHTML(level.description)}</p></div>`).join("")}</div><p class="scale-note">The levels represent increasing AI capability, not a precise energy scale. Actual computing requirements vary by system and task.</p></details>
+            <details class="level-guide" ${step.scenarioNumber === 1 ? "open" : ""}><summary>What do the five assistance types mean?</summary><div class="level-guide-grid">${assistanceLevels.map(level => `<div><span class="level-number">${level.value}</span><p><strong>${escapeHTML(level.label)}</strong><br>${escapeHTML(level.description)}</p></div>`).join("")}</div><p class="scale-note">These categories describe the kind and capability of assistance you would choose. They are not treated as a fixed environmental-impact scale.</p></details>
+            ${tradeoffSlider(s.id, saved.resourceTradeoff)}
             <div class="scenario-measures">${scenarioMeasures.map(m => rangeScale(`${s.id}_${m.key}`, m.text, saved[m.key], m.left, m.right)).join("")}</div>
-            <div class="field scenario-question"><div class="field-label">Which considerations matter most to your choice?</div><div class="field-hint">Select up to three.</div><div class="choice-grid">${reasonOptions.map(([value,label]) => `<label class="checkbox-choice"><input type="checkbox" name="${s.id}_reasons" value="${value}" ${saved.reasons?.includes(value) ? "checked" : ""}><span>${escapeHTML(label)}</span></label>`).join("")}</div></div>
             <div id="validation" class="validation" role="alert"></div>
             ${navButtons(true, step.scenarioNumber === scenarios.length ? "Continue" : "Next scenario")}
           </div>
@@ -303,26 +309,20 @@
       </article>`;
 
     bindAssistanceSlider(`${s.id}_assistance`);
+    bindTradeoffSlider(`${s.id}_tradeoff`);
     bindRangeScales();
-    const boxes = [...document.querySelectorAll(`input[name="${s.id}_reasons"]`)];
-    boxes.forEach(box => box.addEventListener("change", () => {
-      const checked = boxes.filter(b => b.checked);
-      if (checked.length > 3) { box.checked = false; showValidation("Please select no more than three considerations."); }
-      else showValidation("");
-    }));
 
     bindNav(() => {
       const assistanceLevel = getScaleValue(`${s.id}_assistance`);
-      if (!assistanceLevel) return showValidation("Please choose the level of assistance you would use.");
-      const answers = { assistanceLevel };
+      if (!assistanceLevel) return showValidation("Please choose the type of assistance you would normally use.");
+      const resourceTradeoff = getScaleValue(`${s.id}_tradeoff`);
+      if (!resourceTradeoff) return showValidation("Please answer the resource–capability trade-off question.");
+      const answers = { assistanceLevel, resourceTradeoff };
       for (const m of scenarioMeasures) {
         const value = getScaleValue(`${s.id}_${m.key}`);
         if (!value) return showValidation("Please answer all rating questions before continuing.");
         answers[m.key] = value;
       }
-      const reasons = boxes.filter(b => b.checked).map(b => b.value);
-      if (!reasons.length) return showValidation("Please select at least one consideration that matters to your choice.");
-      answers.reasons = reasons;
       state.scenarios[s.id] = answers;
       return true;
     });
@@ -335,6 +335,7 @@
         <span class="eyebrow">Final reflections</span>
         <h2>When is more AI actually worth it?</h2>
         <p class="screen-intro">There are no right or wrong answers. We are interested in the principles you use when choosing between simpler tools and more capable AI systems.</p>
+        <div class="field scenario-question"><div class="field-label">Across academic tasks, which factors most influence whether and how much AI you use?</div><div class="field-hint">Select up to five.</div><div class="choice-grid">${reasonOptions.map(([value,label]) => `<label class="checkbox-choice"><input type="checkbox" name="decisionFactors" value="${value}" ${(r.decisionFactors || []).includes(value) ? "checked" : ""}><span>${escapeHTML(label)}</span></label>`).join("")}</div></div>
         <div class="field"><label for="worthUsing">In what kinds of academic situations do you think GenAI is particularly valuable or justified?</label><textarea id="worthUsing" maxlength="1500">${escapeHTML(r.worthUsing || "")}</textarea></div>
         <div class="field"><label for="avoidUsing">In what kinds of academic situations do you think students should avoid or reconsider using GenAI?</label><textarea id="avoidUsing" maxlength="1500">${escapeHTML(r.avoidUsing || "")}</textarea></div>
         <div class="field"><label for="guidanceWanted">What should universities consider when giving students guidance on choosing between simpler digital tools and more capable AI systems?</label><textarea id="guidanceWanted" maxlength="1500">${escapeHTML(r.guidanceWanted || "")}</textarea></div>
@@ -342,12 +343,20 @@
         <div id="validation" class="validation" role="alert"></div>
         ${navButtons(true, "Review & submit")}
       </article>`;
+    const factorBoxes = [...document.querySelectorAll('input[name="decisionFactors"]')];
+    factorBoxes.forEach(box => box.addEventListener("change", () => {
+      const checked = factorBoxes.filter(b => b.checked);
+      if (checked.length > 5) { box.checked = false; showValidation("Please select no more than five factors."); }
+      else showValidation("");
+    }));
     bindNav(() => {
+      const decisionFactors = factorBoxes.filter(b => b.checked).map(b => b.value);
       const worthUsing = document.getElementById("worthUsing").value.trim();
       const avoidUsing = document.getElementById("avoidUsing").value.trim();
       const guidanceWanted = document.getElementById("guidanceWanted").value.trim();
-      if (!worthUsing || !avoidUsing || !guidanceWanted) return showValidation("Please answer the first three reflection questions.");
-      state.reflection = { worthUsing, avoidUsing, guidanceWanted, otherComments: document.getElementById("otherComments").value.trim() };
+      if (!decisionFactors.length) return showValidation("Please select at least one factor that influences your AI choices.");
+      if (!worthUsing || !avoidUsing || !guidanceWanted) return showValidation("Please answer the three required reflection questions.");
+      state.reflection = { decisionFactors, worthUsing, avoidUsing, guidanceWanted, otherComments: document.getElementById("otherComments").value.trim() };
       return true;
     });
   }
@@ -406,6 +415,7 @@
         study_site: STUDY_SITE,
         started_at: state.startedAt,
         submitted_at_client: new Date().toISOString(),
+        scenario_order: state.scenarioOrder,
         consent: state.consent,
         context: { ...state.context, studySite: STUDY_SITE },
         baseline: state.baseline,
@@ -462,20 +472,20 @@
         Object.assign(state.baseline, {
           useFrequency: document.getElementById("useFrequency")?.value || "",
           purposes: [...document.querySelectorAll('input[name="purposes"]:checked')].map(x => x.value),
-          paidAccess: getRadioValue("paidAccess"), guidance: getRadioValue("guidance"), resourceAwareness: getRadioValue("resourceAwareness"), localContextMismatch: getRadioValue("localContextMismatch")
+          paidAccess: getRadioValue("paidAccess"), institutionalAccess: getRadioValue("institutionalAccess"), guidance: getRadioValue("guidance"), resourceAwareness: getRadioValue("resourceAwareness"), localContextMismatch: getRadioValue("localContextMismatch")
         });
       } else if (step.type === "access") {
-        ["internetAccess", "costConstraint", "guidanceUnderstanding", "integrityConcern", "languageBenefit"].forEach(id => { state.baseline[id] = getScaleValue(id); });
+        ["internetAccess", "costConstraint", "guidanceUnderstanding", "integrityConcern", "languageBenefit", "equalAccess"].forEach(id => { state.baseline[id] = getScaleValue(id); });
       } else if (step.type === "literacy") {
         ["aiConfidence", "aiLiteracy", "verifyOutput", "privacyKnowledge", "sustainabilityImportance", "lowerResourcePreference", "careerImportance"].forEach(id => { state.baseline[id] = getScaleValue(id); });
       } else if (step.type === "scenario") {
         const s = step.scenario;
-        const answers = { assistanceLevel: getScaleValue(`${s.id}_assistance`) };
+        const answers = { assistanceLevel: getScaleValue(`${s.id}_assistance`), resourceTradeoff: getScaleValue(`${s.id}_tradeoff`) };
         scenarioMeasures.forEach(m => { answers[m.key] = getScaleValue(`${s.id}_${m.key}`); });
-        answers.reasons = [...document.querySelectorAll(`input[name="${s.id}_reasons"]:checked`)].map(x => x.value);
         state.scenarios[s.id] = answers;
       } else if (step.type === "reflection") {
         state.reflection = {
+          decisionFactors: [...document.querySelectorAll('input[name="decisionFactors"]:checked')].map(x => x.value),
           worthUsing: document.getElementById("worthUsing")?.value.trim() || "",
           avoidUsing: document.getElementById("avoidUsing")?.value.trim() || "",
           guidanceWanted: document.getElementById("guidanceWanted")?.value.trim() || "",
@@ -517,12 +527,36 @@
     const current = answered ? Number(value) : 3;
     const level = assistanceLevels.find(x => x.value === current) || assistanceLevels[2];
     return `<section class="assistance-block" aria-labelledby="${id}_label">
-      <div class="assistance-title" id="${id}_label">What level of assistance would you choose for this task?</div>
-      <p class="field-hint">Choose the option you would genuinely prefer if all five were available to you.</p>
-      <input class="assistance-range" id="${id}" data-scale="5" data-answered="${answered ? "true" : "false"}" type="range" min="1" max="5" step="1" value="${current}" aria-label="Level of assistance">
+      <div class="assistance-title" id="${id}_label">What type of assistance would you normally choose for this task?</div>
+      <p class="field-hint">Choose the option you would most likely use if all five were available and permitted.</p>
+      <input class="assistance-range" id="${id}" data-scale="5" data-answered="${answered ? "true" : "false"}" type="range" min="1" max="5" step="1" value="${current}" aria-label="Type of assistance">
       <div class="assistance-ticks" aria-hidden="true">${assistanceLevels.map(x => `<span><b>${x.value}</b><small>${escapeHTML(x.short)}</small></span>`).join("")}</div>
       <div class="assistance-selected ${answered ? "answered" : ""}" id="${id}_selected"><span class="selected-level">${answered ? level.value : "—"}</span><div><strong>${answered ? escapeHTML(level.label) : "Move or tap the slider to choose"}</strong><p>${answered ? escapeHTML(level.description) : "Your answer will not be recorded until you interact with the scale."}</p></div></div>
     </section>`;
+  }
+
+  function tradeoffSlider(scenarioId, value = "") {
+    const id = `${scenarioId}_tradeoff`;
+    const answered = value !== "" && value != null;
+    const current = answered ? Number(value) : 4;
+    return `<section class="tradeoff-block" aria-labelledby="${id}_label">
+      <div class="tradeoff-title" id="${id}_label">Resource–capability trade-off</div>
+      <p class="tradeoff-prompt">Suppose both options were permitted and a simpler digital option could complete this task adequately. A more capable AI system might provide a better or more tailored result, but would require more computing resources. Which would you prefer?</p>
+      <div class="tradeoff-head"><span>Simpler option<br><small>fewer computing resources</small></span><output id="${id}_output" class="range-output ${answered ? "answered" : ""}">${answered ? `${current} / 7` : "Not answered"}</output><span>More capable AI<br><small>more computing resources</small></span></div>
+      <input class="survey-range tradeoff-range" id="${id}" data-scale="7" data-answered="${answered ? "true" : "false"}" type="range" min="1" max="7" step="1" value="${current}" aria-label="Preference between a simpler lower-resource option and a more capable higher-resource AI option">
+      <div class="range-ticks" aria-hidden="true">${[1,2,3,4,5,6,7].map(n => `<span>${n}</span>`).join("")}</div>
+      <div class="tradeoff-anchor"><span>Strongly prefer simpler option</span><span>Neutral / depends</span><span>Strongly prefer more capable AI</span></div>
+    </section>`;
+  }
+
+  function bindTradeoffSlider(id) {
+    const input = document.getElementById(id), output = document.getElementById(`${id}_output`);
+    if (!input || !output) return;
+    const update = () => { input.dataset.answered = "true"; output.textContent = `${input.value} / 7`; output.classList.add("answered"); };
+    input.addEventListener("input", update);
+    input.addEventListener("change", update);
+    input.addEventListener("pointerdown", () => setTimeout(update, 0));
+    input.addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") update(); });
   }
 
   function bindRangeScales() {
@@ -573,6 +607,11 @@
   function loadDraft() { try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : null; } catch (_) { return null; } }
   function downloadJSON(data) { const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `sasuf-genai-${data.study_site}-${data.session_id}.json`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); }
   function escapeHTML(str) { return String(str ?? "").replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#039;",'"':"&quot;"}[c])); }
+  function shuffledCopy(items) {
+    const out = items.slice();
+    for (let i = out.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [out[i], out[j]] = [out[j], out[i]]; }
+    return out;
+  }
   function fallbackUUID() { return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; const v = c === "x" ? r : (r & 0x3 | 0x8); return v.toString(16); }); }
 
   function contactHTML() {

@@ -95,13 +95,10 @@ The visible study introduction no longer contains a placeholder ethics-reference
 
 ### South Africa
 - Nobert Jere — University of Fort Hare — njere@ufh.ac.za
-- Nosipho Mavuso — Walter Sisulu University — mavuso.nosipho@gmail.com
+- Nosipho Mavuso — Walter Sisulu University — nmavuso@wsu.ac.za
 
 ## Backend
 
-Both survey pages submit to:
-
-`https://wabisabitech.hk/sasuf/api/submit.php`
 
 The API routes fixed `study_site` values to `responses_SE` or `responses_SA`.
 

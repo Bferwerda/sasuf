@@ -3,7 +3,7 @@
 
   const CONFIG = window.STUDY_CONFIG || {};
   const STUDY_SITE = String(CONFIG.studySite || "").toUpperCase();
-  const STUDY_VERSION = CONFIG.studyVersion || "2026-09-v15";
+  const STUDY_VERSION = CONFIG.studyVersion || "2026-09-v17";
   const STORAGE_KEY = `sasuf-genai-draft-${STUDY_SITE || "UNKNOWN"}-${STUDY_VERSION}`;
 
   const scenarios = [
@@ -23,7 +23,7 @@
     { value: 1, label: "No AI assistance", short: "No AI", description: "Do the task without AI assistance, using your own work and ordinary course materials." },
     { value: 2, label: "Conventional digital tool", short: "Conventional", description: "Use a non-generative tool such as web search, a dictionary, spell-checker, calculator or reference source." },
     { value: 3, label: "Specialized AI tool", short: "Specialized AI", description: "Use an AI feature designed mainly for one function, such as grammar suggestions, translation or autocomplete." },
-    { value: 4, label: "General-purpose GenAI", short: "GenAI", description: "Use a standard conversational Generative AI tool to generate, transform or explain content." },
+    { value: 4, label: "General-purpose GenAI", short: "GenAI", description: "Use a standard conversational GenAI tool to generate, transform or explain content." },
     { value: 5, label: "Advanced / reasoning GenAI", short: "Advanced AI", description: "Use a more capable reasoning, research or large-context mode/model for a demanding task." }
   ];
 
@@ -35,10 +35,8 @@
   const tradeoffLabels = ["Strongly prefer the simpler option", "Prefer the simpler option", "Somewhat prefer the simpler option", "Neutral / depends", "Somewhat prefer the more capable AI", "Prefer the more capable AI", "Strongly prefer the more capable AI"];
 
   const scenarioMeasures = [
-    { key: "difficulty", text: "How difficult would this task be for you to complete satisfactorily without Generative AI?", left: "Not difficult at all", right: "Extremely difficult", labels: difficultyLabels },
+    { key: "difficulty", text: "How difficult would this task be for you to complete satisfactorily without GenAI?", left: "Not difficult at all", right: "Extremely difficult", labels: difficultyLabels },
     { key: "stakes", text: "How important is it to get a highly accurate or high-quality result for this task?", left: "Not important at all", right: "Extremely important", labels: importanceLabels },
-    { key: "evaluation", text: "If you used AI for this task, how confident are you that you could judge whether its output was correct and appropriate?", left: "Not at all confident", right: "Completely confident", labels: confidenceLabels },
-    { key: "appropriate", text: "Using AI for this task would be appropriate.", left: "Strongly disagree", right: "Strongly agree", labels: agreementLabels },
     { key: "value", text: "AI assistance would add meaningful value compared with a simpler option.", left: "Strongly disagree", right: "Strongly agree", labels: agreementLabels },
     { key: "alternative", text: "A simpler digital or non-AI option would adequately meet my needs for this task.", left: "Strongly disagree", right: "Strongly agree", labels: agreementLabels },
     { key: "learning", text: "AI assistance would support my learning rather than replace it.", left: "Strongly disagree", right: "Strongly agree", labels: agreementLabels }
@@ -97,8 +95,12 @@
   state.timing.stepMs = (state.timing.stepMs && typeof state.timing.stepMs === "object") ? state.timing.stepMs : {};
   state.timing.sessions = Number(state.timing.sessions) || 0;
   const scenarioIds = scenarios.map(s => s.id);
-  if (!Array.isArray(state.scenarioOrder) || state.scenarioOrder.length !== scenarioIds.length || state.scenarioOrder.some(id => !scenarioIds.includes(id))) {
-    state.scenarioOrder = shuffledCopy(scenarioIds);
+  const SCENARIOS_PER_PARTICIPANT = 5;
+  if (!Array.isArray(state.scenarioOrder) ||
+      state.scenarioOrder.length !== SCENARIOS_PER_PARTICIPANT ||
+      new Set(state.scenarioOrder).size !== SCENARIOS_PER_PARTICIPANT ||
+      state.scenarioOrder.some(id => !scenarioIds.includes(id))) {
+    state.scenarioOrder = shuffledCopy(scenarioIds).slice(0, SCENARIOS_PER_PARTICIPANT);
   }
   const orderedScenarios = state.scenarioOrder.map(id => scenarios.find(s => s.id === id)).filter(Boolean);
 
@@ -260,9 +262,9 @@
       <article class="screen-card">
         <span class="eyebrow">Participant information</span>
         <h2>About the study</h2>
-        <p class="screen-intro">We are studying how university students in Sweden and South Africa choose between simpler digital tools and different levels of AI assistance for academic tasks. Everyone sees the same scenarios; this is a comparative survey rather than an experimental manipulation.</p>
+        <p class="screen-intro">We are studying how university students in Sweden and South Africa choose between simpler digital tools and different levels of Generative AI (GenAI) assistance for academic tasks. Each participant sees five tasks drawn at random from the same pool of ten scenarios; this is a comparative survey rather than an experimental manipulation.</p>
         <ul class="consent-list consent-list-compact">
-          <li>The survey takes approximately 20–25 minutes.</li>
+          <li>The survey takes approximately 10–15 minutes.</li>
           <li>Participation is voluntary, for students aged 18 or older, and you may stop at any time before submitting without giving a reason. Participating or not participating will not affect your studies, grades, services, or relationship with your university.</li>
           <li>We do not ask for your name, email address, student number, or other direct identifiers. Please do not enter identifying information in open-text boxes.</li>
           <li>Your responses may be used in academic research publications, project reports, and the development of preliminary guidance for responsible GenAI use.</li>
@@ -275,7 +277,7 @@
           </div>
         </details>
         <section class="participant-contacts"><h3>Research contacts</h3>${contacts}</section>
-        <div class="notice info scenario-explainer"><strong>About the scenario questions:</strong> you will first choose the type of assistance you would normally use. Separately, you will answer a hypothetical trade-off question about preferring a simpler, lower-resource option or a more capable AI option that requires more computing resources. We do not assume that the five real-world tool categories themselves have a fixed environmental ranking.</div>
+        <div class="notice info scenario-explainer"><strong>About the scenario questions:</strong> you will see five academic tasks randomly selected from a pool of ten. For each task, you will choose the type of assistance you would normally use and answer a short set of questions about the task, the value of AI, and the resource–capability trade-off. We do not assume that the five real-world tool categories themselves have a fixed environmental ranking.</div>
         <div class="consent-box"><label class="checkbox-choice"><input type="checkbox" id="consentCheck" ${state.consent.agreed ? "checked" : ""}><span>I have read the information above, I am at least 18 years old, and I voluntarily agree to participate.</span></label></div>
         <div id="validation" class="validation" role="alert"></div>
         ${navButtons(false, "Continue")}
@@ -297,12 +299,10 @@
         <p class="screen-intro">These questions help us interpret differences between higher-education contexts without collecting directly identifying information. The study site refers to where you study, not your nationality.</p>
         ${selectField("institution", "Current institution", [["", "Select…"], ...institutions.map(x => [x, x])], c.institution)}
         ${selectField("studyLevel", "Current study level", [["", "Select…"], ["Bachelor", "Bachelor's / undergraduate"], ["Master", "Master's / postgraduate taught"], ["Doctoral", "Doctoral / PhD"], ["Other", "Other"]], c.studyLevel)}
-        ${selectField("programmeYear", "Year in your current programme", [["", "Select…"], ["1", "First year"], ["2", "Second year"], ["3", "Third year"], ["4+", "Fourth year or later"], ["Not applicable", "Not applicable / programme is not organised by year"]], c.programmeYear)}
         ${selectField("discipline", "Broad field of study", [["", "Select…"], ["Computing", "Computer science / IT / engineering"], ["Business", "Business / economics / management"], ["Education", "Education"], ["Health", "Health / medicine"], ["Humanities", "Humanities / languages"], ["Social Sciences", "Social sciences"], ["Natural Sciences", "Natural sciences"], ["Other", "Other"]], c.discipline)}
         ${ageField(c.age)}
         ${selectField("gender", "Gender", [["", "Select…"], ["Woman", "Woman"], ["Man", "Man"], ["Non-binary or another gender", "Non-binary or another gender"], ["Prefer not to say", "Prefer not to say"]], c.gender)}
         ${selectField("programmeLanguageFirst", "Is the main language used in your programme one of your first or home languages?", [["", "Select…"], ["Yes", "Yes"], ["No", "No"], ["Prefer not to say", "Prefer not to say"]], c.programmeLanguageFirst)}
-        ${selectField("preUniversitySameCountry", "Did you complete most of your education before university in the same country in which you are currently studying?", [["", "Select…"], ["Yes", "Yes"], ["No", "No"], ["Prefer not to say", "Prefer not to say"]], c.preUniversitySameCountry)}
         ${rangeScale("languageComfort", "How comfortable are you studying in the main language used in your programme?", c.languageComfort, "Not at all comfortable", "Very comfortable", comfortLabels)}
         <div id="validation" class="validation" role="alert"></div>
         ${navButtons(true, "Continue")}
@@ -310,11 +310,11 @@
     bindRangeScales();
     bindAgeField();
     bindNav(() => {
-      const ids = ["institution", "studyLevel", "programmeYear", "discipline", "gender", "programmeLanguageFirst", "preUniversitySameCountry"];
+      const ids = ["institution", "studyLevel", "discipline", "gender", "programmeLanguageFirst"];
       const missing = ids.find(id => !document.getElementById(id).value);
       if (missing) return showValidation("Please answer this question before continuing. You may choose 'Prefer not to say' where offered.", missing);
       const age = getAgeValue();
-      if (!age) return showValidation("Please enter your age in whole years (18–75), or choose 'Prefer not to say'.", "age");
+      if (!age) return showValidation("Please enter your age in whole years (18–120), or choose 'Prefer not to say'.", "age");
       if (!getScaleValue("languageComfort")) return showValidation("Please answer this question before continuing.", "languageComfort");
       state.context = { ...collectValues(ids), age, languageComfort: getScaleValue("languageComfort"), studySite: STUDY_SITE };
       return true;
@@ -329,12 +329,11 @@
         <span class="eyebrow">Current practice</span>
         <h2>Your current GenAI use</h2>
         <p class="screen-intro">Think about tools such as ChatGPT, Gemini, Copilot, Claude, or other systems that generate text, images, code or explanations.</p>
-        ${selectField("useFrequency", "How often have you used Generative AI for your studies during the past 12 months?", [["", "Select…"], ["Never", "Never"], ["Less than monthly", "Less than once a month"], ["Monthly", "A few times a month"], ["Weekly", "A few times a week"], ["Daily", "Daily or almost daily"]], b.useFrequency)}
+        ${selectField("useFrequency", "How often have you used GenAI for your studies during the past 12 months?", [["", "Select…"], ["Never", "Never"], ["Less than monthly", "Less than once a month"], ["Monthly", "A few times a month"], ["Weekly", "A few times a week"], ["Daily", "Daily or almost daily"]], b.useFrequency)}
         <div class="field"><div class="field-label">What have you used GenAI for in your studies during the past 12 months?</div><div class="field-hint">Select all that apply.</div><div class="choice-grid purpose-grid">${purposeOptions.map(([value,label]) => `<label class="checkbox-choice"><input type="checkbox" name="purposes" value="${value}" ${selectedPurposes.includes(value) ? "checked" : ""}><span>${escapeHTML(label)}</span></label>`).join("")}</div></div>
         ${yesNoUnsure("paidAccess", "Do you currently have access to a paid or premium GenAI service?", b.paidAccess)}
-        ${yesNoUnsure("institutionalAccess", "Does your university provide you with access to a Generative AI service or licence?", b.institutionalAccess)}
-        ${yesNoUnsure("guidance", "Has your institution or programme given you guidance about acceptable GenAI use?", b.guidance)}
-        ${yesNoUnsure("formalTraining", "Have you received formal teaching, training, or instruction from your university about how to use Generative AI effectively?", b.formalTraining)}
+        ${yesNoUnsure("institutionalAccess", "Does your university provide you with access to a GenAI service or licence?", b.institutionalAccess)}
+        ${yesNoUnsure("formalTraining", "Have you received formal teaching, training, or instruction from your university about how to use GenAI effectively?", b.formalTraining)}
         ${yesNoUnsure("resourceAwareness", "Before this survey, were you aware that different digital and AI tools can require substantially different amounts of computing resources?", b.resourceAwareness)}
         ${yesNoUnsureNA("localContextMismatch", "Have you encountered GenAI responses that were poorly suited to your local, cultural or regional context?", b.localContextMismatch)}
         <div id="validation" class="validation" role="alert"></div>
@@ -344,15 +343,15 @@
     bindNav(() => {
       const frequency = document.getElementById("useFrequency").value;
       const purposes = [...document.querySelectorAll('input[name="purposes"]:checked')].map(x => x.value);
-      const paidAccess = getRadioValue("paidAccess"), institutionalAccess = getRadioValue("institutionalAccess"), guidance = getRadioValue("guidance"), formalTraining = getRadioValue("formalTraining"), resourceAwareness = getRadioValue("resourceAwareness"), localContextMismatch = getRadioValue("localContextMismatch");
+      const paidAccess = getRadioValue("paidAccess"), institutionalAccess = getRadioValue("institutionalAccess"), formalTraining = getRadioValue("formalTraining"), resourceAwareness = getRadioValue("resourceAwareness"), localContextMismatch = getRadioValue("localContextMismatch");
       if (!frequency) return showValidation("Please answer this question before continuing.", "useFrequency");
       if (!purposes.length) return showValidation("Please select at least one option before continuing.", document.querySelector('input[name="purposes"]'));
-      for (const name of ["paidAccess", "institutionalAccess", "guidance", "formalTraining", "resourceAwareness", "localContextMismatch"]) {
+      for (const name of ["paidAccess", "institutionalAccess", "formalTraining", "resourceAwareness", "localContextMismatch"]) {
         if (!getRadioValue(name)) return showValidation("Please answer this question before continuing.", document.querySelector(`input[name="${name}"]`));
       }
       if (frequency === "Never" && !purposes.includes("not_using")) return showValidation("You selected 'Never'. Please also select 'I have not used GenAI for my studies'.", document.querySelector('input[name="purposes"][value="not_using"]'));
       if (frequency !== "Never" && purposes.includes("not_using")) return showValidation("Your use-frequency answer indicates some GenAI use. Please select the purposes that apply instead of 'I have not used GenAI'.", document.querySelector('input[name="purposes"][value="not_using"]'));
-      Object.assign(state.baseline, { useFrequency: frequency, purposes, paidAccess, institutionalAccess, guidance, formalTraining, resourceAwareness, localContextMismatch });
+      Object.assign(state.baseline, { useFrequency: frequency, purposes, paidAccess, institutionalAccess, formalTraining, resourceAwareness, localContextMismatch });
       return true;
     });
   }
@@ -370,14 +369,11 @@
         ${rangeScale("integrityConcern", "I am concerned about unintentionally violating academic-integrity rules when using GenAI.", b.integrityConcern)}
         ${rangeScale("languageBenefit", "GenAI can help me overcome language-related difficulties in my studies.", b.languageBenefit)}
         ${rangeScale("equalAccess", "Students at my institution have reasonably equal opportunities to access and use GenAI tools.", b.equalAccess)}
-        ${rangeScale("peerNorm", "Using Generative AI for coursework is common among students in my programme.", b.peerNorm)}
-        ${rangeScale("lecturerNorm", "My lecturers generally view responsible use of Generative AI positively.", b.lecturerNorm)}
-        ${rangeScale("rulePreference", "I prefer clear rules about when Generative AI is and is not allowed in my coursework.", b.rulePreference)}
         <div id="validation" class="validation" role="alert"></div>
         ${navButtons(true, "Continue")}
       </article>`;
     bindRangeScales();
-    bindNav(() => saveScaleGroup(["internetAccess", "costConstraint", "guidanceUnderstanding", "integrityConcern", "languageBenefit", "equalAccess", "peerNorm", "lecturerNorm", "rulePreference"]));
+    bindNav(() => saveScaleGroup(["internetAccess", "costConstraint", "guidanceUnderstanding", "integrityConcern", "languageBenefit", "equalAccess"]));
   }
 
   function renderLiteracy() {
@@ -387,19 +383,18 @@
         <span class="eyebrow">AI literacy &amp; attitudes</span>
         <h2>How you evaluate GenAI</h2>
         <p class="screen-intro">Please indicate how much you agree with each statement.</p>
-        ${rangeScale("aiConfidence", "I feel confident deciding when GenAI is appropriate for an academic task.", b.aiConfidence)}
         ${rangeScale("aiLiteracy", "I understand important limitations and risks of GenAI for academic work.", b.aiLiteracy)}
         ${rangeScale("verifyOutput", "I know how to check whether information produced by GenAI is reliable.", b.verifyOutput)}
         ${rangeScale("privacyKnowledge", "I know what kinds of information I should not share with a GenAI system.", b.privacyKnowledge)}
         ${rangeScale("sustainabilityImportance", "The environmental and computing-resource implications of digital tools are important to me.", b.sustainabilityImportance)}
         ${rangeScale("lowerResourcePreference", "If two options work equally well, I prefer the option that uses fewer computing resources.", b.lowerResourcePreference)}
-        ${rangeScale("dependencyConcern", "I am concerned that relying too much on Generative AI could reduce my ability to perform academic tasks independently.", b.dependencyConcern)}
+        ${rangeScale("dependencyConcern", "I am concerned that relying too much on GenAI could reduce my ability to perform academic tasks independently.", b.dependencyConcern)}
         ${rangeScale("careerImportance", "Being able to use GenAI effectively will be important for my future work or career.", b.careerImportance)}
         <div id="validation" class="validation" role="alert"></div>
         ${navButtons(true, "Continue to scenarios")}
       </article>`;
     bindRangeScales();
-    bindNav(() => saveScaleGroup(["aiConfidence", "aiLiteracy", "verifyOutput", "privacyKnowledge", "sustainabilityImportance", "lowerResourcePreference", "dependencyConcern", "careerImportance"]));
+    bindNav(() => saveScaleGroup(["aiLiteracy", "verifyOutput", "privacyKnowledge", "sustainabilityImportance", "lowerResourcePreference", "dependencyConcern", "careerImportance"]));
   }
 
   function renderScenario(step) {
@@ -410,7 +405,7 @@
         <div class="scenario-layout">
           <aside class="scenario-art" aria-hidden="true">${scenarioSVG(s.art)}</aside>
           <div class="scenario-content">
-            <div class="scenario-number">${step.scenarioNumber} / ${scenarios.length}</div>
+            <div class="scenario-number">${step.scenarioNumber} / ${orderedScenarios.length}</div>
             <h2>${escapeHTML(s.title)}</h2>
             <p class="scenario-text">${escapeHTML(s.text)}</p>
             ${assistanceSlider(s.id, saved.assistanceLevel)}
@@ -419,7 +414,7 @@
             <div class="scenario-measures">${scenarioMeasures.map(m => rangeScale(`${s.id}_${m.key}`, m.text, saved[m.key], m.left, m.right, m.labels)).join("")}</div>
             ${tradeoffSlider(s.id, saved.resourceTradeoff)}
             <div id="validation" class="validation" role="alert"></div>
-            ${navButtons(true, step.scenarioNumber === scenarios.length ? "Continue" : "Next scenario")}
+            ${navButtons(true, step.scenarioNumber === orderedScenarios.length ? "Continue" : "Next scenario")}
           </div>
         </div>
       </article>`;
@@ -452,11 +447,9 @@
         <span class="eyebrow">Final reflections</span>
         <h2>When is more AI actually worth it?</h2>
         <p class="screen-intro">There are no right or wrong answers. We are interested in the principles you use when choosing between simpler tools and more capable AI systems.</p>
-        <div class="field scenario-question"><div class="field-label">Across academic tasks, which factors most influence whether and how much AI you use?</div><div class="field-hint">Select up to five.</div><div class="choice-grid">${reasonOptions.map(([value,label]) => `<label class="checkbox-choice"><input type="checkbox" name="decisionFactors" value="${value}" ${(r.decisionFactors || []).includes(value) ? "checked" : ""}><span>${escapeHTML(label)}</span></label>`).join("")}</div></div>
-        <div class="field"><label for="worthUsing">In what kinds of academic situations do you think GenAI is particularly valuable or justified?</label><textarea id="worthUsing" maxlength="1500">${escapeHTML(r.worthUsing || "")}</textarea></div>
-        <div class="field"><label for="avoidUsing">In what kinds of academic situations do you think students should avoid or reconsider using GenAI?</label><textarea id="avoidUsing" maxlength="1500">${escapeHTML(r.avoidUsing || "")}</textarea></div>
-        <div class="field"><label for="guidanceWanted">What should universities consider when giving students guidance on choosing between simpler digital tools and more capable AI systems? <span class="optional-tag">Optional</span></label><textarea id="guidanceWanted" maxlength="1500">${escapeHTML(r.guidanceWanted || "")}</textarea></div>
-        <div class="field"><label for="otherComments">Anything else you would like us to know? <span class="optional-tag">Optional</span></label><textarea id="otherComments" maxlength="1500">${escapeHTML(r.otherComments || "")}</textarea></div>
+        <div class="field scenario-question"><div class="field-label">Across academic tasks, which factors most influence whether and how much GenAI you use?</div><div class="field-hint">Select up to five.</div><div class="choice-grid">${reasonOptions.map(([value,label]) => `<label class="checkbox-choice"><input type="checkbox" name="decisionFactors" value="${value}" ${(r.decisionFactors || []).includes(value) ? "checked" : ""}><span>${escapeHTML(label)}</span></label>`).join("")}</div></div>
+        <div class="field"><label for="worthUsing">In what kinds of academic situations is more capable GenAI particularly valuable or justified, and when would a simpler option be sufficient?</label><textarea id="worthUsing" maxlength="1500">${escapeHTML(r.worthUsing || "")}</textarea></div>
+        <div class="field"><label for="guidanceWanted">What should universities consider when supporting students in choosing between simpler digital tools and more capable AI systems? <span class="optional-tag">Optional</span></label><textarea id="guidanceWanted" maxlength="1500">${escapeHTML(r.guidanceWanted || "")}</textarea></div>
         <div id="validation" class="validation" role="alert"></div>
         ${navButtons(true, "Review & submit")}
       </article>`;
@@ -469,12 +462,10 @@
     bindNav(() => {
       const decisionFactors = factorBoxes.filter(b => b.checked).map(b => b.value);
       const worthUsing = document.getElementById("worthUsing").value.trim();
-      const avoidUsing = document.getElementById("avoidUsing").value.trim();
       const guidanceWanted = document.getElementById("guidanceWanted").value.trim();
       if (!decisionFactors.length) return showValidation("Please select at least one factor that influences your AI choices.", document.querySelector('input[name="decisionFactors"]'));
       if (!worthUsing) return showValidation("Please answer this question before continuing.", "worthUsing");
-      if (!avoidUsing) return showValidation("Please answer this question before continuing.", "avoidUsing");
-      state.reflection = { decisionFactors, worthUsing, avoidUsing, guidanceWanted, otherComments: document.getElementById("otherComments").value.trim() };
+      state.reflection = { decisionFactors, worthUsing, guidanceWanted };
       return true;
     });
   }
@@ -594,17 +585,17 @@
     const step = steps[state.currentStep];
     try {
       if (step.type === "context") {
-        state.context = { ...collectValues(["institution", "studyLevel", "programmeYear", "discipline", "gender", "programmeLanguageFirst", "preUniversitySameCountry"]), age: getAgeValue() || "", languageComfort: getScaleValue("languageComfort"), studySite: STUDY_SITE };
+        state.context = { ...collectValues(["institution", "studyLevel", "discipline", "gender", "programmeLanguageFirst"]), age: getAgeValue() || "", languageComfort: getScaleValue("languageComfort"), studySite: STUDY_SITE };
       } else if (step.type === "practice") {
         Object.assign(state.baseline, {
           useFrequency: document.getElementById("useFrequency")?.value || "",
           purposes: [...document.querySelectorAll('input[name="purposes"]:checked')].map(x => x.value),
-          paidAccess: getRadioValue("paidAccess"), institutionalAccess: getRadioValue("institutionalAccess"), guidance: getRadioValue("guidance"), formalTraining: getRadioValue("formalTraining"), resourceAwareness: getRadioValue("resourceAwareness"), localContextMismatch: getRadioValue("localContextMismatch")
+          paidAccess: getRadioValue("paidAccess"), institutionalAccess: getRadioValue("institutionalAccess"), formalTraining: getRadioValue("formalTraining"), resourceAwareness: getRadioValue("resourceAwareness"), localContextMismatch: getRadioValue("localContextMismatch")
         });
       } else if (step.type === "access") {
-        ["internetAccess", "costConstraint", "guidanceUnderstanding", "integrityConcern", "languageBenefit", "equalAccess", "peerNorm", "lecturerNorm", "rulePreference"].forEach(id => { state.baseline[id] = getScaleValue(id); });
+        ["internetAccess", "costConstraint", "guidanceUnderstanding", "integrityConcern", "languageBenefit", "equalAccess"].forEach(id => { state.baseline[id] = getScaleValue(id); });
       } else if (step.type === "literacy") {
-        ["aiConfidence", "aiLiteracy", "verifyOutput", "privacyKnowledge", "sustainabilityImportance", "lowerResourcePreference", "dependencyConcern", "careerImportance"].forEach(id => { state.baseline[id] = getScaleValue(id); });
+        ["aiLiteracy", "verifyOutput", "privacyKnowledge", "sustainabilityImportance", "lowerResourcePreference", "dependencyConcern", "careerImportance"].forEach(id => { state.baseline[id] = getScaleValue(id); });
       } else if (step.type === "scenario") {
         const s = step.scenario;
         const answers = { assistanceLevel: getScaleValue(`${s.id}_assistance`), resourceTradeoff: getScaleValue(`${s.id}_tradeoff`) };
@@ -614,9 +605,7 @@
         state.reflection = {
           decisionFactors: [...document.querySelectorAll('input[name="decisionFactors"]:checked')].map(x => x.value),
           worthUsing: document.getElementById("worthUsing")?.value.trim() || "",
-          avoidUsing: document.getElementById("avoidUsing")?.value.trim() || "",
-          guidanceWanted: document.getElementById("guidanceWanted")?.value.trim() || "",
-          otherComments: document.getElementById("otherComments")?.value.trim() || ""
+          guidanceWanted: document.getElementById("guidanceWanted")?.value.trim() || ""
         };
       }
       saveDraft();
@@ -638,7 +627,7 @@
       <label for="age">Age (in years)</label>
       <div class="field-hint">Exact age lets us describe and compare the samples more precisely. You may choose not to provide it.</div>
       <div class="age-entry-row">
-        <input id="age" class="number-input" type="number" min="18" max="75" step="1" inputmode="numeric" autocomplete="off" placeholder="e.g., 23" value="${escapeHTML(numeric)}" ${prefer ? "disabled" : ""}>
+        <input id="age" class="number-input" type="number" min="18" max="120" step="1" inputmode="numeric" autocomplete="off" placeholder="e.g., 23" value="${escapeHTML(numeric)}" ${prefer ? "disabled" : ""}>
         <label class="checkbox-choice age-prefer"><input id="agePreferNot" type="checkbox" ${prefer ? "checked" : ""}><span>Prefer not to say</span></label>
       </div>
     </div>`;
@@ -652,7 +641,7 @@
     const raw = String(input.value || "").trim();
     if (!/^\d+$/.test(raw)) return "";
     const age = Number(raw);
-    if (!Number.isInteger(age) || age < 18 || age > 75) return "";
+    if (!Number.isInteger(age) || age < 18 || age > 120) return "";
     return String(age);
   }
 

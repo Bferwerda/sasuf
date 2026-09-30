@@ -1,7 +1,9 @@
-# SASUF GenAI Student Survey — v17 data dictionary
+# SASUF GenAI Student Survey — v18 data dictionary
 
 ## Design
-Each respondent is randomly assigned **5 of the 10** academic scenarios. `payload.scenario_order` records the five scenarios and their presentation order.
+Each respondent is assigned **5 of the 10** academic scenarios through the site-specific `cyclic-balanced-block-v1` schedule. Across every complete cycle of 10 assignments, each scenario appears exactly 5 times. The five scenarios are presented in random order.
+
+`payload.scenario_order` records the five scenarios in presentation order. `payload.randomization` records the design, block index, and assignment source.
 
 ## Context
 `institution`, `studyLevel`, `discipline`, `age`, `gender`, `programmeLanguageFirst`, `languageComfort`.

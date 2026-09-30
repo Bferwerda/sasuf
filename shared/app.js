@@ -3,7 +3,7 @@
 
   const CONFIG = window.STUDY_CONFIG || {};
   const STUDY_SITE = String(CONFIG.studySite || "").toUpperCase();
-  const STUDY_VERSION = CONFIG.studyVersion || "2026-09-v17";
+  const STUDY_VERSION = CONFIG.studyVersion || "2026-09-v18";
   const STORAGE_KEY = `sasuf-genai-draft-${STUDY_SITE || "UNKNOWN"}-${STUDY_VERSION}`;
 
   const scenarios = [
@@ -96,24 +96,10 @@
   state.timing.sessions = Number(state.timing.sessions) || 0;
   const scenarioIds = scenarios.map(s => s.id);
   const SCENARIOS_PER_PARTICIPANT = 5;
-  if (!Array.isArray(state.scenarioOrder) ||
-      state.scenarioOrder.length !== SCENARIOS_PER_PARTICIPANT ||
-      new Set(state.scenarioOrder).size !== SCENARIOS_PER_PARTICIPANT ||
-      state.scenarioOrder.some(id => !scenarioIds.includes(id))) {
-    state.scenarioOrder = shuffledCopy(scenarioIds).slice(0, SCENARIOS_PER_PARTICIPANT);
-  }
-  const orderedScenarios = state.scenarioOrder.map(id => scenarios.find(s => s.id === id)).filter(Boolean);
-
-  const steps = [
-    { type: "consent", title: "About the study" },
-    { type: "context", title: "About you and your studies" },
-    { type: "practice", title: "Your current GenAI use" },
-    { type: "access", title: "Access, guidance and context" },
-    { type: "literacy", title: "AI literacy and attitudes" },
-    ...orderedScenarios.map((scenario, index) => ({ type: "scenario", title: scenario.title, scenario, scenarioNumber: index + 1 })),
-    { type: "reflection", title: "Final reflections" },
-    { type: "submit", title: "Submit" }
-  ];
+  if (!validScenarioOrder(state.scenarioOrder)) state.scenarioOrder = [];
+  let orderedScenarios = [];
+  let steps = [];
+  rebuildSteps();
 
   const hero = document.getElementById("hero");
   const panel = document.getElementById("studyPanel");
@@ -241,8 +227,9 @@
 
   function renderStep() {
     const step = steps[state.currentStep];
-    const pct = Math.round((state.currentStep / (steps.length - 1)) * 100);
-    progressLabel.textContent = `Step ${state.currentStep + 1} of ${steps.length}`;
+    const totalStepCount = 7 + SCENARIOS_PER_PARTICIPANT;
+    const pct = Math.round((state.currentStep / (totalStepCount - 1)) * 100);
+    progressLabel.textContent = `Step ${state.currentStep + 1} of ${totalStepCount}`;
     progressPercent.textContent = `${pct}%`;
     progressBar.style.width = `${pct}%`;
 
@@ -262,7 +249,7 @@
       <article class="screen-card">
         <span class="eyebrow">Participant information</span>
         <h2>About the study</h2>
-        <p class="screen-intro">We are studying how university students in Sweden and South Africa choose between simpler digital tools and different levels of Generative AI (GenAI) assistance for academic tasks. Each participant sees five tasks drawn at random from the same pool of ten scenarios; this is a comparative survey rather than an experimental manipulation.</p>
+        <p class="screen-intro">We are studying how university students in Sweden and South Africa choose between simpler digital tools and different levels of Generative AI (GenAI) assistance for academic tasks. Each participant sees five tasks assigned from a balanced schedule covering the same pool of ten scenarios; this is a comparative survey rather than an experimental manipulation.</p>
         <ul class="consent-list consent-list-compact">
           <li>The survey takes approximately 10–15 minutes.</li>
           <li>Participation is voluntary, for students aged 18 or older, and you may stop at any time before submitting without giving a reason. Participating or not participating will not affect your studies, grades, services, or relationship with your university.</li>
@@ -277,14 +264,15 @@
           </div>
         </details>
         <section class="participant-contacts"><h3>Research contacts</h3>${contacts}</section>
-        <div class="notice info scenario-explainer"><strong>About the scenario questions:</strong> you will see five academic tasks randomly selected from a pool of ten. For each task, you will choose the type of assistance you would normally use and answer a short set of questions about the task, the value of AI, and the resource–capability trade-off. We do not assume that the five real-world tool categories themselves have a fixed environmental ranking.</div>
+        <div class="notice info scenario-explainer"><strong>About the scenario questions:</strong> you will see five academic tasks assigned from a balanced set of ten, in a random order. For each task, you will choose the type of assistance you would normally use and answer a short set of questions about the task, the value of AI, and the resource–capability trade-off. We do not assume that the five real-world tool categories themselves have a fixed environmental ranking.</div>
         <div class="consent-box"><label class="checkbox-choice"><input type="checkbox" id="consentCheck" ${state.consent.agreed ? "checked" : ""}><span>I have read the information above, I am at least 18 years old, and I voluntarily agree to participate.</span></label></div>
         <div id="validation" class="validation" role="alert"></div>
         ${navButtons(false, "Continue")}
       </article>`;
-    bindNav(() => {
+    bindNav(async () => {
       if (!document.getElementById("consentCheck").checked) return showValidation("Please confirm your consent before continuing.", "consentCheck");
       state.consent = { agreed: true, timestamp: new Date().toISOString() };
+      if (!await ensureScenarioAssignment()) return false;
       return true;
     });
   }
@@ -529,6 +517,7 @@
         submitted_at_client: submittedAtClient,
         timing,
         scenario_order: state.scenarioOrder,
+        randomization: state.randomization || null,
         consent: state.consent,
         context: { ...state.context, studySite: STUDY_SITE },
         baseline: state.baseline,
@@ -560,14 +549,19 @@
   function bindNav(validateAndSave) {
     const back = document.getElementById("backBtn"), next = document.getElementById("nextBtn");
     if (back) back.addEventListener("click", goBack);
-    if (next) next.addEventListener("click", () => {
-      if (validateAndSave() === true) {
-        clearValidation();
-        tickTiming();
-        state.currentStep += 1;
-        saveDraft();
-        renderStep();
-        window.scrollTo({ top: 0, behavior: "smooth" });
+    if (next) next.addEventListener("click", async () => {
+      next.disabled = true;
+      try {
+        if (await validateAndSave() === true) {
+          clearValidation();
+          tickTiming();
+          state.currentStep += 1;
+          saveDraft();
+          renderStep();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      } finally {
+        if (document.body.contains(next)) next.disabled = false;
       }
     });
   }
@@ -846,6 +840,70 @@
     }
     return false;
   }
+  function validScenarioOrder(order) {
+    return Array.isArray(order) &&
+      order.length === SCENARIOS_PER_PARTICIPANT &&
+      new Set(order).size === SCENARIOS_PER_PARTICIPANT &&
+      order.every(id => scenarioIds.includes(id));
+  }
+
+  function rebuildSteps() {
+    orderedScenarios = (state.scenarioOrder || []).map(id => scenarios.find(s => s.id === id)).filter(Boolean);
+    steps = [
+      { type: "consent", title: "About the study" },
+      { type: "context", title: "About you and your studies" },
+      { type: "practice", title: "Your current GenAI use" },
+      { type: "access", title: "Access, guidance and context" },
+      { type: "literacy", title: "AI literacy and attitudes" },
+      ...orderedScenarios.map((scenario, index) => ({ type: "scenario", title: scenario.title, scenario, scenarioNumber: index + 1 })),
+      { type: "reflection", title: "Final reflections" },
+      { type: "submit", title: "Submit" }
+    ];
+  }
+
+  async function ensureScenarioAssignment() {
+    if (validScenarioOrder(state.scenarioOrder)) { rebuildSteps(); return true; }
+    const endpoint = String(CONFIG.assignmentEndpoint || "").trim();
+    try {
+      let assignment;
+      if (endpoint) {
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ study_site: STUDY_SITE, session_id: state.sessionId, study_version: state.studyVersion }),
+          cache: "no-store"
+        });
+        try { assignment = await response.json(); } catch (_) { assignment = null; }
+        if (!response.ok || !assignment?.ok) throw new Error(assignment?.error || `HTTP ${response.status}`);
+      } else if (!backendConfigured()) {
+        const blockIndex = Math.floor(Math.random() * 10);
+        const base = [0, 1, 2, 4, 7];
+        assignment = {
+          scenario_order: shuffledCopy(base.map(offset => scenarioIds[(offset + blockIndex) % scenarioIds.length])),
+          block_index: blockIndex,
+          design: "cyclic-balanced-block-v1",
+          source: "local-demo"
+        };
+      } else {
+        throw new Error("No assignment endpoint configured");
+      }
+      if (!validScenarioOrder(assignment.scenario_order)) throw new Error("Invalid scenario assignment");
+      state.scenarioOrder = assignment.scenario_order.slice();
+      state.randomization = {
+        design: assignment.design || "cyclic-balanced-block-v1",
+        block_index: Number(assignment.block_index),
+        source: assignment.source || "server"
+      };
+      rebuildSteps();
+      saveDraft();
+      return true;
+    } catch (error) {
+      console.error(error);
+      showValidation("We could not assign your scenario set. Please check your connection and try again.");
+      return false;
+    }
+  }
+
   function saveDraft() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (_) {} }
   function loadDraft() { try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : null; } catch (_) { return null; } }
   function downloadJSON(data) { const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `sasuf-genai-${data.study_site}-${data.session_id}.json`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); }

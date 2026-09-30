@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const cfg=window.SASUF_ADMIN_CONFIG||{}, endpoint=cfg.apiEndpoint, tokenKey='sasuf_admin_token_v17'; let currentSite='ALL', currentQuality='ALL', currentFreeTextKey='worthUsing', freeTextRows=[], freeTextPage=1; const FREE_TEXT_PAGE_SIZE=25;
+  const cfg=window.SASUF_ADMIN_CONFIG||{}, endpoint=cfg.apiEndpoint, tokenKey='sasuf_admin_token_v18'; let currentSite='ALL', currentQuality='ALL', currentFreeTextKey='worthUsing', freeTextRows=[], freeTextPage=1; const FREE_TEXT_PAGE_SIZE=25;
   const freeTextLabels={worthUsing:'When more capable GenAI is justified vs. a simpler option',guidanceWanted:'What universities should consider in student support'};
   const $=id=>document.getElementById(id), loginView=$('loginView'), dashboardView=$('dashboardView'), loginForm=$('loginForm'), loginError=$('loginError');
   if(cfg.title)$('pageTitle').textContent=cfg.title;

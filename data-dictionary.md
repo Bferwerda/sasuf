@@ -9,13 +9,13 @@ Each respondent is assigned **5 of the 10** academic scenarios through the site-
 `institution`, `studyLevel`, `discipline`, `age`, `gender`, `programmeLanguageFirst`, `languageComfort`.
 
 ## Current GenAI use / access
-`useFrequency`, `purposes`, `paidAccess`, `institutionalAccess`, `formalTraining`, `resourceAwareness`, `localContextMismatch`.
+`useFrequency`, `purposes`, `paidAccess`, `institutionalAccess`, `formalTraining`, `localContextMismatch`.
 
 ## Access, guidance and inclusion ratings (1–7)
 `internetAccess`, `costConstraint`, `guidanceUnderstanding`, `integrityConcern`, `languageBenefit`, `equalAccess`.
 
 ## AI literacy / sustainability / future orientation ratings (1–7)
-`aiLiteracy`, `verifyOutput`, `privacyKnowledge`, `sustainabilityImportance`, `lowerResourcePreference`, `dependencyConcern`, `careerImportance`.
+`aiLiteracy`, `verifyOutput`, `privacyKnowledge`, `sustainabilityImportance`, `dependencyConcern`, `careerImportance`.
 
 ## Scenario pool
 `proofreading`, `concept_explanation`, `reading_summary`, `brainstorming`, `language_support`, `academic_sources`, `organising_information`, `feedback_work`, `assessed_writing`, `data_interpretation`.
@@ -25,7 +25,6 @@ Only the five scenarios assigned to a respondent are present in `payload.scenari
 ### Scenario fields
 - `assistanceLevel` (1–5)
 - `difficulty` (1–7)
-- `stakes` (1–7)
 - `value` (1–7)
 - `alternative` (1–7)
 - `learning` (1–7)
